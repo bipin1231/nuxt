@@ -5,9 +5,7 @@ import { useCartStore } from '@/stores/cartStore';
 const router = useRouter()
 const search = ref('');
 const cartStore = useCartStore();
-
-
-
+const user = ref<string | null>(null)
 
 const handleSearch = () => {
   router.push({
@@ -18,7 +16,25 @@ const handleSearch = () => {
   });
 }
 
+const fetchUser = async () => {
+  const res = await $fetch('/api/me')
+  user.value = res.user
+}
+onMounted(fetchUser)
 
+const handleLogout=async()=>{
+try{
+  const res=await $fetch('/api/logout',{
+    method:'POST'
+  })
+  user.value=null
+}catch(err:any){
+  console.log(err);
+  
+}
+
+
+}
 </script>
 <template>
 
@@ -47,6 +63,13 @@ const handleSearch = () => {
               {{ cartStore.cart.length }}
             </span>
           </NuxtLink>
+          <NuxtLink
+          v-if="!user"
+          to="/login" class="hover:text-gray-400">Login</NuxtLink>
+          <button
+          v-else="user"
+          @click="handleLogout"
+          class="hover:text-gray-400">Logout</button>
         </div>
       </div>
 
