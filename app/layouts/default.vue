@@ -5,5 +5,5 @@ import Navbar from '~/components/Navbar.vue';
 
 <template>
  <Navbar/>
-      <slot/>
+ <NuxtPage />
 </template>

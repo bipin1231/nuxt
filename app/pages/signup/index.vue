@@ -5,6 +5,11 @@ import { useRouter } from 'vue-router'
 import PasswordField from '~/components/PasswordField.vue'
 import SubmitButton from '~/components/SubmitButton.vue'
 
+definePageMeta({
+  layout: 'auth'
+})
+
+
 
 const router=useRouter()
 
@@ -89,6 +94,12 @@ const handleSubmit = async() => {
 <template>
   <main class="min-h-screen bg-gray-950 flex items-center justify-center px-4">
     <div class="w-full max-w-md shadow-lg p-6">
+      <button
+        @click="router.go(-1)"
+        class="text-gray-300 mb-4 hover:text-gray-100 text-sm flex items-center"
+      >
+        ← Back
+      </button>
       <h1 class="text-xl font-semibold text-gray-100 mb-6 text-center">
         Create Account
       </h1>
@@ -134,6 +145,16 @@ const handleSubmit = async() => {
 
         <SubmitButton label="Create Account" />
       </form>
+            <p class="text-gray-400 text-sm mt-4 text-center">
+         Have an account? 
+        <NuxtLink
+        to="/login"
+        
+          class="text-blue-400 hover:underline ml-1"
+        >
+          Login
+        </NuxtLink>
+      </p>
     </div>
   </main>
 </template>

@@ -5,6 +5,10 @@ import PasswordField from '~/components/PasswordField.vue'
 import SubmitButton from '~/components/SubmitButton.vue'
 import { useRouter } from 'vue-router'
 
+definePageMeta({
+  layout: 'auth'
+})
+
 const router = useRouter();
 
 type UserFormData = {
@@ -88,30 +92,34 @@ const handleSubmit = async () => {
 
 
 </script>
-
 <template>
   <main class="min-h-screen bg-gray-950 flex items-center justify-center px-4">
     <div class="w-full max-w-md shadow-lg p-6">
+      
+    
+      <button
+        @click="router.go(-1)"
+        class="text-gray-300 mb-4 hover:text-gray-100 text-sm flex items-center"
+      >
+        ← Back
+      </button>
+
       <h1 class="text-xl font-semibold text-gray-100 mb-6 text-center">
-       Login
+        Login
       </h1>
 
       <form
-        id="signupForm"
+        id="loginForm"
         @submit.prevent="handleSubmit"
         class="space-y-5"
       >
-
-
         <FormField
           label="Email"
-          placeholder="enter your email"
+          placeholder="Enter your email"
           type="text"
           v-model="userFormData.email"
           :error="userFormError.email"
         />
-
-
 
         <PasswordField
           label="Password"
@@ -121,10 +129,20 @@ const handleSubmit = async () => {
           :error="userFormError.password"
         />
 
-
-
-        <SubmitButton label=" Login" />
+        <SubmitButton label="Login" />
       </form>
+
+
+      <p class="text-gray-400 text-sm mt-4 text-center">
+        Don't have an account? 
+        <NuxtLink
+        to="/signup"
+        
+          class="text-blue-400 hover:underline ml-1"
+        >
+          Signup
+        </NuxtLink>
+      </p>
     </div>
   </main>
 </template>
