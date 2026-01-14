@@ -2,10 +2,13 @@
 
 import { ref } from 'vue';
 import { useCartStore } from '@/stores/cartStore';
+const {user,logout}=useAuth();
+console.log("nav user",user.value);
+
 const router = useRouter()
 const search = ref('');
 const cartStore = useCartStore();
-const user = ref<string | null>(null)
+// const user = ref<string | null>(null)
 
 const handleSearch = () => {
   router.push({
@@ -17,21 +20,22 @@ const handleSearch = () => {
 }
 
 const fetchUser = async () => {
-  const res = await $fetch('/api/me')
-  user.value = res.user
+  // const res = await $fetch('/api/me')
+  // user = res.user
 }
 onMounted(fetchUser)
 
 const handleLogout=async()=>{
-try{
-  const res=await $fetch('/api/logout',{
-    method:'POST'
-  })
-  user.value=null
-}catch(err:any){
-  console.log(err);
+  await logout()
+// try{
+//   const res=await $fetch('/api/logout',{
+//     method:'POST'
+//   })
+//   user.value=null
+// }catch(err:any){
+//   console.log(err);
   
-}
+// }
 
 
 }

@@ -8,6 +8,7 @@ import { useRouter } from 'vue-router'
 definePageMeta({
   layout: 'auth'
 })
+const {fetchUser}=useAuth()
 
 const router = useRouter();
 
@@ -82,6 +83,7 @@ const handleSubmit = async () => {
 
     
    alert('Login success!')
+   await fetchUser();
     router.push('/')
   } catch (err: any) {
     alert(err?.data?.message || 'Error')
