@@ -1,14 +1,19 @@
   import { ref } from 'vue'
+  import type { User } from '~/types/user'
 
 export const useAuth = () => {
-  const user = useState<string | null>('user', () => null)
+  const user = useState<User | null>('user', () => null)
   const loading = ref(true)
 
   // get user info from server
   const fetchUser = async () => {
     try {
-      const res = await $fetch('/api/me') // reads cookie
+      const res = await $fetch<{ user: User }>('/api/me') // reads cookie
+      console.log(res);
+      
       user.value = res.user
+      return res.user
+      
     } catch (e) {
       user.value = null
     } finally {
@@ -26,29 +31,6 @@ export const useAuth = () => {
         
     }
   }
-    // const login=async(data)=>{
-    //     try {
-    //         const res=$fetch('api/login',{
-    //             method:'POST',
-    //             body:data
-    //         });
-    //       await fetchUser();
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-        
-    // }
-    //     const signup=async(data)=>{
-    //     try {
-    //         const res=$fetch('api/signup',{
-    //             method:'POST',
-    //             body:data
-    //         });
-    //       await fetchUser();
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-        
-    // }
+  
     return {user,fetchUser,logout}
 }

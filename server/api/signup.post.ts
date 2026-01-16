@@ -15,7 +15,11 @@ export default defineEventHandler(async (event)=>{
         })
     }
 
-    addUser(body)
+    const userData={
+        ...body,
+        role:null
+    }
+    addUser(userData)
     return body
     
 

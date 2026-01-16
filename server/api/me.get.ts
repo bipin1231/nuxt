@@ -1,7 +1,7 @@
 export default defineEventHandler((event) => {
-  const user = getCookie(event, 'user')
+ const cookie = getCookie(event, 'user')
 
   return {
-    user: user || null
+    user: cookie ? JSON.parse(cookie) : null
   }
 })

@@ -10,8 +10,12 @@ export default defineEventHandler(async (event) => {
         })
     }
 
+    const cookieData={
+      email:body.email,
+      role:user.role
+    }
  
-  setCookie(event, 'user', body.email,{ path: '/' })
+  setCookie(event, 'user',JSON.stringify(cookieData),{ path: '/' })
 
   return {
     email: body.email
