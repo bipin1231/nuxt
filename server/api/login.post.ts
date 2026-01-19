@@ -18,6 +18,7 @@ export default defineEventHandler(async (event) => {
   setCookie(event, 'user',JSON.stringify(cookieData),{ path: '/' })
 
   return {
-    email: body.email
+    email: body.email,
+    role: user.role
   }
 })

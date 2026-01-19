@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useRoute,useRouter } from 'vue-router'
-
+    definePageMeta({
+  layout: 'admin',
+})
 interface Product {
   title: string
   price: number
@@ -62,7 +64,7 @@ try{
 
       <form @submit.prevent="handleSubmit" class="space-y-5">
 
-        <!-- Title -->
+    
         <div>
           <label class="block text-sm text-zinc-400 mb-1">
             Product Title

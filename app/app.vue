@@ -3,6 +3,7 @@
   console.log(user.value);
   
   await fetchUser()
+    console.log(user.value);
 </script>
 <template>
   <NuxtLayout/>

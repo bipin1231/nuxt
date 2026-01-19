@@ -4,6 +4,10 @@ import type { ProductItem, ProductResponse } from '@/types/product'
 import ProductCard from '@/components/ProductCard.vue'
 import { useCartStore } from '@/stores/cartStore'
 
+definePageMeta({
+  middleware: ['role-redirect']
+})
+
 
 const route = useRoute()
 const router = useRouter()
