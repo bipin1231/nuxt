@@ -31,7 +31,7 @@ const handleLogout = async() => {
 
 
     <aside
-      class="bg-gray-900 w-64 min-h-screen px-4 py-6"
+      class="bg-gray-900 w-64 min-h-screen px-4 py-6 text-white"
       :class="{ 'hidden': !isSidebarOpen }"
     >
       <h2 class="text-xl font-bold mb-8">Admin Panel</h2>

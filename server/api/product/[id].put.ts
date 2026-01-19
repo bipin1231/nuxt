@@ -12,6 +12,9 @@ const formData = await readMultipartFormData(event)
   let title = formData.find(f => f.name === 'title')?.data?.toString()
   let price = Number(formData.find(f => f.name === 'price')?.data)
     const image = formData.find(f => f.name === 'image')
+    console.log(image);
+
+    
     let filename;
 if(image){
      const uploadDir = path.join(process.cwd(), 'public/uploads/products')
@@ -23,14 +26,16 @@ if(image){
         filename = image.filename
        fs.writeFileSync(path.join(uploadDir, filename), image.data)
     }
-    if(!filename) filename=oldProduct.thumbnail
+    console.log(filename);
+    
+ 
     if(!title) title=oldProduct.title
     if(!price) price=oldProduct.price
       
        const product = {
          title,
          price,
-         thumbnail: `/uploads/products/${filename}`
+         thumbnail: filename ? `/uploads/products/${filename}` : oldProduct.thumbnail
        }
        updateProductByIndex(id, product)
 

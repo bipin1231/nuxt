@@ -42,72 +42,84 @@ const handleEdit=(index)=>{
 
 
 <template>
-  <div class="p-6">
-    <h1 class="text-2xl font-bold mb-4">Products</h1>
+  <div class="min-h-screen bg-zinc-950 p-6">
+    
+    <h1 class="text-2xl font-semibold text-white mb-6">
+      Products
+    </h1>
 
-    <div v-if="products.length === 0" class="text-gray-500">
+    <div
+      v-if="products.length === 0"
+      class="text-zinc-400 bg-zinc-900 border border-zinc-800 rounded-lg p-6 text-center"
+    >
       No products found
     </div>
 
-    <div v-else class="overflow-x-auto bg-white rounded-lg shadow">
-      <table class="w-full border-collapse">
-        <thead class="bg-gray-100 text-left">
+   
+    <div
+      v-else
+      class="overflow-x-auto rounded-xl bg-zinc-900 border border-zinc-800 shadow-lg"
+    >
+      <table class="w-full border-collapse text-sm text-zinc-300">
+        
+    
+        <thead class="bg-zinc-800 text-zinc-400 uppercase text-xs">
           <tr>
-            <th class="p-3 border-b">#</th>
-            <th class="p-3 border-b">Image</th>
-            <th class="p-3 border-b">Title</th>
-            <th class="p-3 border-b">Price</th>
-            <th class="p-3 border-b text-center">Actions</th>
+            <th class="p-4 border-b border-zinc-800">#</th>
+            <th class="p-4 border-b border-zinc-800">Image</th>
+            <th class="p-4 border-b border-zinc-800">Title</th>
+            <th class="p-4 border-b border-zinc-800">Price</th>
+            <th class="p-4 border-b border-zinc-800 text-center">Actions</th>
           </tr>
         </thead>
 
+     
         <tbody>
           <tr
             v-for="(product, index) in products"
             :key="index"
-            class="hover:bg-gray-50"
+            class="hover:bg-zinc-800/60 transition"
           >
-            <td class="p-3 border-b">
+            <td class="p-4 border-b border-zinc-800">
               {{ index + 1 }}
             </td>
 
-            <td class="p-3 border-b">
+            <td class="p-4 border-b border-zinc-800">
               <img
                 :src="product.thumbnail"
                 alt="product"
-                class="w-16 h-16 object-cover rounded"
+                class="w-14 h-14 rounded-lg object-cover border border-zinc-700"
               />
             </td>
 
-            <td class="p-3 border-b font-medium">
+            <td class="p-4 border-b border-zinc-800 font-medium text-white">
               {{ product.title }}
             </td>
 
-            <td class="p-3 border-b">
+            <td class="p-4 border-b border-zinc-800">
               Rs. {{ product.price }}
             </td>
 
-            <td class="p-3 border-b text-center space-x-2">
+            <td class="p-4 border-b border-zinc-800 text-center space-x-2">
               <button
-            
-              @click="handleEdit(index)"
-                class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+                @click="handleEdit(index)"
+                class="px-3 py-1.5 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition"
               >
                 Edit
               </button>
 
-
-              
               <button
-                class="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                class="px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700 transition"
               >
                 Delete
               </button>
             </td>
           </tr>
         </tbody>
+
       </table>
     </div>
   </div>
 </template>
+
 
