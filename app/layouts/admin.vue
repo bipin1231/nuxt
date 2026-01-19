@@ -12,8 +12,8 @@ const isSidebarOpen = ref(true)
 
 const menuItems = [
   { title: 'Dashboard', path: '/admin/dashboard' },
-  { title: 'Products', path: '/admin/products' },
-  { title: 'Orders', path: '/admin/orders' },
+  { title: 'Add', path: '/admin/product/add' },
+  { title: 'List', path: '/admin/product/list' },
   { title: 'Users', path: '/admin/users' },
 ]
 
@@ -27,7 +27,7 @@ const handleLogout = async() => {
 </script>
 
 <template>
-  <div class="min-h-screen flex bg-black text-white">
+  <div class="min-h-screen flex ">
 
 
     <aside
@@ -68,9 +68,9 @@ const handleLogout = async() => {
       </nav>
 
     
-      <main class="flex-1 overflow-y-auto p-6">
-        <slot />
-      </main>
+    
+       <NuxtPage/>
+     
     </div>
 
   </div>

@@ -1,7 +1,7 @@
 export type ProductItem = {
-  id: number;
+
   title: string;
+  thumbnail:string;
   price: number;
-  category:string;
-  stock:string;
+
 }
