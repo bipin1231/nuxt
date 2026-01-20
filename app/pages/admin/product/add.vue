@@ -1,5 +1,7 @@
 <script setup lang="ts">
-
+definePageMeta({
+  layout: 'admin',
+})
 import { ref } from 'vue';
     const title=ref('')
     const price=ref(0)

@@ -1,51 +1,29 @@
+import { db } from "~~/server/db/client";
+import { products } from "~~/server/db/schema";
+import { z } from "zod";
 
-import fs from 'fs'
-import path from 'path'
-import { addProduct } from "~~/server/utils/products"
+const productSchema = z.object({
+  title: z.string().min(1),
+  price: z.number().int().positive(),
+  thumbnail: z.string().url(),
+});
 export default defineEventHandler(async (event) => {
-  const formData = await readMultipartFormData(event)
+  try {
+    const body = await readBody(event)
 
-  if (!formData)
-    throw createError({ statusCode: 400, statusMessage: 'Invalid form data' })
+    const result = await db.insert(products).values({
+      title: body.title,
+      price: body.price,
+      thumbnail: body.thumbnail,
+    }).returning()
 
- 
-  const title = formData.find(f => f.name === 'title')?.data?.toString()
-  const price = Number(formData.find(f => f.name === 'price')?.data)
-  console.log(title);
-  console.log(price);
-  
-  
-
-  const image = formData.find(f => f.name === 'image')
-
-  console.log(image);
-  
-  if (!title || !price || !image)
-    throw createError({ statusCode: 400, statusMessage: 'Missing fields' })
-
-
-  const uploadDir = path.join(process.cwd(), 'public/uploads/products')
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true })
-  }
-
- 
-  const filename = image.filename
-  fs.writeFileSync(path.join(uploadDir, filename), image.data)
-
- 
-  const product = {
-    title,
-    price,
-    thumbnail: `/uploads/products/${filename}`
-  }
-
-  addProduct(product)
-
-  console.log(product)
-
-  return {
-    success: true,
-    product
+    return result[0]
+  } catch (err: any) {
+    console.error("🔥 DB ERROR:", err) // IMPORTANT
+    throw createError({
+      statusCode: 500,
+      statusMessage: err.message,
+    })
   }
 })
+

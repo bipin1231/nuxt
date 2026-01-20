@@ -7,7 +7,7 @@ type User = {
 
 const users: User[] = [
   {
-  email:"don@don.com",
+  email:"admin@admin.com",
   password:"12345678",
   role:"admin"
 },
