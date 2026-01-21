@@ -29,6 +29,7 @@ export default defineEventHandler(async (event)=>{
     name:name,
     email:email,
     password:hashedPassword,
+    role:'user'
    });
 
    return data

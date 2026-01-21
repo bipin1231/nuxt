@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
 
     return result[0]
   } catch (err: any) {
-    console.error("🔥 DB ERROR:", err) // IMPORTANT
+    console.error(" DB ERROR:", err) 
     throw createError({
       statusCode: 500,
       statusMessage: err.message,

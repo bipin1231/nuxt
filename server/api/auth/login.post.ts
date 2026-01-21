@@ -3,12 +3,13 @@ import z from "zod";
 import { db } from "~~/server/db/client";
 import { users } from "~~/server/db/schema/user";
 import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
 
  const userSchema=z.object({
     email:z.string(),
     password:z.string().min(6)
  })
-
+const JWT_SECRET = process.env.JWT_SECRET || ""
 export default defineEventHandler(async(event)=>{
     const body=await readBody(event)
 
@@ -23,10 +24,24 @@ export default defineEventHandler(async(event)=>{
     
     if(!isValid)     
         throw createError({ statusCode: 401, statusMessage: 'Invalid credentials' })
+    
 
+    const singingObj={
+        userId:user.id,
+        role:user.role
+    }
+    const token=jwt.sign(singingObj,JWT_SECRET, { expiresIn: '24h' })
+    console.log("jwt token",token);
+    
+
+    setCookie(event,'token',token,{
+    httpOnly: true,
+    maxAge: 60 * 60*48, 
+    path: '/',
+    sameSite: 'lax',
+    })
   return {
     message: 'Login successful',
-    userId: user.id,
   }
 
 
