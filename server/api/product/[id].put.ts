@@ -14,7 +14,6 @@ const formData = await readMultipartFormData(event)
     const image = formData.find(f => f.name === 'image')
     console.log(image);
 
-    
     let filename;
 if(image){
      const uploadDir = path.join(process.cwd(), 'public/uploads/products')
