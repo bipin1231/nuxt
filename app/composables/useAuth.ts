@@ -8,7 +8,7 @@ export const useAuth = () => {
   // get user info from server
   const fetchUser = async () => {
     try {
-      const res = await $fetch<{ user: User }>('/api/me') // reads cookie
+      const res = await $fetch<{ user: User }>('/api/user/me') 
       console.log(res);
       
       user.value = res.user
