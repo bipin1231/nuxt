@@ -8,35 +8,42 @@ definePageMeta({
   layout: 'admin',
 })
 
+const route = useRoute()
+
+const router = useRouter()
+
+
+
 const roles = [
   { id: 'admin', name: 'Admin', color: 'text-red-500' },
   { id: 'editor', name: 'Editor', color: 'text-blue-500' },
   { id: 'viewer', name: 'Viewer', color: 'text-green-500' }
 ]
-const {data:users}=useFetch('/api/admin/users');
 
-const route = useRoute()
-const router = useRouter()
 
+
+const showDeleteModal = ref(false)
+const userToDelete = ref<any>(null)
 
 const searchQuery = ref((route.query.search as string) || '')
 const selectedRole = ref<string | null>((route.query.role as string) || null)
+
+
+  const {data:users,refresh}=useFetch('/api/admin/users', {
+  query: {
+    search: searchQuery,
+    role: selectedRole
+  }
+});
+
+
 
 // Role change modal
 const showRoleModal = ref(false)
 const selectedUser = ref<any>(null)
 const newRole = ref('')
 
-// Filtered users
-const filteredUsers = computed(() => {
-  return users.value.filter((user) => {
-    const matchesSearch = 
-      user.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesRole = !selectedRole.value || user.role === selectedRole.value
-    return matchesSearch && matchesRole
-  })
-})
+
 
 
 const setRole = (role: string | null) => {
@@ -56,14 +63,63 @@ const openRoleModal = (user: any) => {
 }
 
 // Change user role
-const changeUserRole = () => {
- 
+const changeUserRole =async () => {
+  console.log(selectedUser.value);
+  console.log(newRole.value);
+  
+  const {id,oldRole}=selectedUser.value
+
+  if(oldRole===newRole.value){
+    console.log("role hasnt been changed");
+    return
+  }
+
+  try {
+    const res = await $fetch(`/api/admin/users/${id}`, {
+      method: 'PUT',
+      body: {
+        role: newRole.value,
+      },
+    })
+     console.log("Role updated", res)
+     showRoleModal.value=false
+     refresh();
+
+  }catch(error){
+    console.log(error);
+    
+  }
 }
+
 
 // Get role badge color
 const getRoleColor = (role: string) => {
   return roles.find(r => r.id === role)?.color || 'text-muted-foreground'
 }
+
+
+
+// Open delete modal
+const handleUserDelete = (user: any) => {
+  userToDelete.value = user
+  showDeleteModal.value = true
+}
+
+// Confirm delete
+const confirmDeleteUser = async () => {
+  try {
+    await $fetch(`/api/admin/users/${userToDelete.value.id}`, {
+      method: 'DELETE',
+    })
+
+    showDeleteModal.value = false
+    userToDelete.value = null
+    refresh()
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 
 </script>
 
@@ -72,10 +128,10 @@ const getRoleColor = (role: string) => {
    
     <AdminHeader
       title="Users"
-      :description="`${users.length} users in your system`"
+      :description="`${users?.length} users in your system`"
     >
       <template #actions>
-                        <NuxtLink
+        <NuxtLink
           to="/admin/users/new"
 
         >
@@ -153,9 +209,9 @@ const getRoleColor = (role: string) => {
               <th class="px-5 py-3 text-left text-xs font-normal text-muted-foreground">
                 Role
               </th>
-              <th class="hidden px-5 py-3 text-right text-xs font-normal text-muted-foreground sm:table-cell">
+              <!-- <th class="hidden px-5 py-3 text-right text-xs font-normal text-muted-foreground sm:table-cell">
                 Status
-              </th>
+              </th> -->
               <th class="px-5 py-3 text-right text-xs font-normal text-muted-foreground">
                 <span class="sr-only">Actions</span>
               </th>
@@ -163,12 +219,12 @@ const getRoleColor = (role: string) => {
           </thead>
 
           <tbody class="divide-y divide-border/30">
-            <tr v-for="user in filteredUsers" :key="user.id" class="group">
+            <tr v-for="user in users" :key="user.id" class="group">
               <td class="px-5 py-4">
                 <div class="flex items-center gap-3">
                   <div class="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-secondary/30">
                     <img
-                      :src="user.avatar"
+                      :src="user.avatar || ''"
                       :alt="user.name"
                       class="object-cover h-full w-full"
                     />
@@ -193,11 +249,11 @@ const getRoleColor = (role: string) => {
                 </span>
               </td>
 
-              <td class="hidden px-5 py-4 text-right sm:table-cell">
+              <!-- <td class="hidden px-5 py-4 text-right sm:table-cell">
                 <span :class="`text-xs ${user.status === 'active' ? 'text-green-500' : 'text-muted-foreground'}`">
                   {{ user.status === 'active' ? 'Active' : 'Inactive' }}
                 </span>
-              </td>
+              </td> -->
 
               <td class="px-5 py-4 text-right">
                 <div class="flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
@@ -209,31 +265,33 @@ const getRoleColor = (role: string) => {
                   >
                     <Shield class="h-3.5 w-3.5" stroke-width="1.5" />
                   </button>
-                  <button
+                  <!-- edit button -->
+                  <!-- <button
                     type="button"
                     class="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                   >
                     <Pencil class="h-3.5 w-3.5" stroke-width="1.5" />
-                  </button>
+                  </button> -->
                   <button
                     type="button"
+                    @click="handleUserDelete(user)"
                     class="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                   >
                     <Trash2 class="h-3.5 w-3.5" stroke-width="1.5" />
                   </button>
-                  <button
+                  <!-- <button
                     type="button"
                     class="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                   >
                     <MoreHorizontal class="h-3.5 w-3.5" stroke-width="1.5" />
-                  </button>
+                  </button> -->
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
 
-        <div v-if="filteredUsers.length === 0" class="py-12 text-center">
+        <div v-if="users?.length === 0" class="py-12 text-center">
           <p class="text-sm text-muted-foreground">No users found.</p>
         </div>
       </div>
@@ -305,5 +363,55 @@ const getRoleColor = (role: string) => {
         </div>
       </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+<div
+  v-if="showDeleteModal"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+  @click.self="showDeleteModal = false"
+>
+  <div class="w-full max-w-md rounded-lg border border-border/30 bg-card p-6 shadow-lg">
+    <div class="mb-4 flex items-center gap-3">
+      <div class="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+        <Trash2 class="h-5 w-5 text-destructive" stroke-width="1.5" />
+      </div>
+      <div>
+        <h3 class="text-lg font-medium text-foreground">
+          Delete User
+        </h3>
+        <p class="text-sm text-muted-foreground">
+          This action cannot be undone
+        </p>
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <p class="text-sm text-muted-foreground">
+        Are you sure you want to delete
+        <span class="font-medium text-foreground">
+          {{ userToDelete?.name }}
+        </span>?
+      </p>
+
+      <div class="flex gap-2 pt-2">
+        <button
+          type="button"
+          @click="showDeleteModal = false"
+          class="flex-1 rounded-lg border border-border/30 bg-secondary px-4 py-2 text-sm text-foreground transition-colors hover:bg-secondary/80"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          @click="confirmDeleteUser"
+          class="flex-1 rounded-lg bg-red-600 px-4 py-2 text-sm text-white transition-opacity hover:opacity-90"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
   </div>
 </template>

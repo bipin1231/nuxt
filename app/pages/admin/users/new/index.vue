@@ -4,6 +4,7 @@ import { useRouter } from '#imports'
 import AdminHeader from '~/components/admin/AdminHeader.vue'
 import { categories } from '~/lib/store-data'
 import { ArrowLeft, Upload, X, ChevronDown, Check } from 'lucide-vue-next'
+import { is } from 'drizzle-orm'
 
 definePageMeta({
   layout: 'admin',
@@ -30,7 +31,7 @@ const userForm=reactive<UserForm>({
 
 const router = useRouter()
 
-/* ================= Image ================= */
+
 const imagePreview = ref<string | null>(null)
 
 const handleImageChange = (event: Event) => {
@@ -38,7 +39,7 @@ const handleImageChange = (event: Event) => {
   const file = target.files?.[0]
   if (file) {
     imagePreview.value = URL.createObjectURL(file)
-    userForm.avatar = event.target.files[0]
+    userForm.avatar = file
   }
 }
 
@@ -47,7 +48,7 @@ const removeImage = () => {
   imagePreview.value = null
 }
 
-/* ================= Form ================= */
+
 const productName = ref('')
 const description = ref('')
 const price = ref<number | null>(null)
@@ -57,8 +58,9 @@ const category = ref(categories[0]?.id || '')
 const tags = ref<string[]>([])
 const role = ref('user')
 
-/* ================= Role Dropdown ================= */
+
 const isOpen = ref(false)
+const isLoading = ref(false)
 
 const roleOptions = [
   { value: 'user', label: 'User' },
@@ -104,14 +106,18 @@ const addUser = async () => {
     formData.append('image', userForm.avatar);
 }
  try{
+  isLoading.value=true;
   const res=await $fetch('/api/admin/users',{
     method:'POST',
     body:formData,
   });
-  console.log(res);
+ 
+  router.push('/admin/users');
  }catch(error){
   console.error("Error adding user:",error);
- }
+ }finally{
+  isLoading.value=false;
+}
 }
 </script>
 
@@ -232,7 +238,7 @@ const addUser = async () => {
               type="submit"
               class="rounded-lg bg-foreground px-6 py-2.5 text-sm font-medium text-background"
             >
-              Create User
+              {{ isLoading ? 'Creating...' : 'Create User' }}
             </button>
           </div>
         </div>
