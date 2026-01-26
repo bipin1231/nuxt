@@ -12,15 +12,15 @@ export default defineEventHandler(async (event) => {
 
 const {search} = getQuery(event);
 if (search) {
-    const res=await db.select().from(category).where(
-        ilike(category.title,`%${search}%`)
+    const res=await db.select().from(brand).where(
+        ilike(brand.title,`%${search}%`)
     )
     return res
     
 }
 
 
-    const res=await db.select().from(category)
+    const res=await db.select().from(brand)
     return res
 
 })

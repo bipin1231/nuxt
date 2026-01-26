@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from '#imports'
 import  AdminHeader  from '~/components/admin/AdminHeader.vue'
-import { categories } from '~/lib/store-data'
+
 import { ArrowLeft, Upload, X } from 'lucide-vue-next'
 definePageMeta({
   layout: 'admin',
@@ -13,13 +13,33 @@ const router = useRouter()
 // Image preview state
 const imagePreview = ref<string | null>(null)
 
+  const isOpen = ref(false)
+
+
+const selectedCategory=ref('Please select a Category')
+
+const selectCategory = (value: string) => {
+  selectedCategory.value = value
+  isOpen.value = false
+ 
+}
+const {data:categories} = await useFetch('/api/admin/category')
+const toggleDropdown = () => {
+  isOpen.value = !isOpen.value
+}
+
+const { data: sizes ,refresh} = await useFetch('/api/admin/sizes')
+
+console.log(sizes.value);
+
+
 // Form state (optional, can expand for v-model)
 const productName = ref('')
 const description = ref('')
 const price = ref<number | null>(null)
 const compareAtPrice = ref<number | null>(null)
 const status = ref('Draft')
-const category = ref(categories[0]?.id || '')
+
 const tags = ref<string[]>([])
 
 // Handlers
@@ -47,7 +67,7 @@ const createProduct = () => {
     price: price.value,
     compareAtPrice: compareAtPrice.value,
     status: status.value,
-    category: category.value,
+    category: selectedCategory.value,
     tags: tags.value,
     image: imagePreview.value
   })
@@ -86,6 +106,45 @@ const createProduct = () => {
                 />
               </div>
 
+                          <div class="mb-2">
+                <label class="text-xs text-muted-foreground">Category</label>
+                <div class="relative">
+                  <button
+                    type="button"
+                    @click="toggleDropdown"
+                    class="w-full text-muted-foreground rounded-lg border border-border/50 bg-background px-4 py-2.5 text-left text-sm flex items-center justify-between"
+                  >
+                    <span>{{ selectedCategory }}</span>
+                    <ChevronDown
+                      class="h-4 w-4 text-muted-foreground transition-transform"
+                      :class="{ 'rotate-180': isOpen }"
+                    />
+                  </button>
+
+                  <div
+                    v-if="isOpen"
+                    class="absolute z-50 mt-2 w-full rounded-lg border border-border/50 bg-white shadow-lg"
+                  >
+                    <button
+                      v-for="category in categories"
+                      :key="category.id"
+                      type="button"
+                      @click="selectCategory(category.title)"
+                      class="w-full px-4 py-2.5 text-left text-sm hover:bg-muted/50 flex items-center justify-between"
+                    >
+                      <span>{{ category.title }}</span>
+                      <Check v-if="selectedCategory === category.title" class="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div
+                  v-if="isOpen"
+                  @click="isOpen = false"
+                  class="fixed inset-0 z-40"
+                ></div>
+              </div>
+
               <div>
                 <label class="text-xs text-muted-foreground">Description</label>
                 <textarea
@@ -98,7 +157,36 @@ const createProduct = () => {
             </div>
           </div>
 
-          
+       
+
+         
+          <div class="rounded-lg border border-border/30 bg-card p-6">
+            <h2 class="text-sm font-medium text-foreground">Pricing</h2>
+            <div class="mt-6 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="text-xs text-muted-foreground">Price</label>
+                <div class="relative mt-1.5">
+                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                  <input
+                    type="number"
+                    placeholder="0.00"
+                    v-model.number="price"
+                    class="w-full rounded-lg border border-border/50 bg-background py-2.5 pl-8 pr-4 text-sm placeholder:text-muted-foreground/50 focus:border-foreground/20 focus:outline-none focus:ring-1 focus:ring-foreground/10"
+                  />
+                </div>
+              </div>
+
+
+            </div>
+          </div>
+        </div>
+
+      
+        <div class="space-y-6">
+        
+
+
+   
           <div class="rounded-lg border border-border/30 bg-card p-6">
             <h2 class="text-sm font-medium text-foreground">Image</h2>
             <div class="mt-6">
@@ -124,77 +212,7 @@ const createProduct = () => {
               </label>
             </div>
           </div>
-
-         
-          <div class="rounded-lg border border-border/30 bg-card p-6">
-            <h2 class="text-sm font-medium text-foreground">Pricing</h2>
-            <div class="mt-6 grid gap-4 sm:grid-cols-2">
-              <div>
-                <label class="text-xs text-muted-foreground">Price</label>
-                <div class="relative mt-1.5">
-                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
-                  <input
-                    type="number"
-                    placeholder="0.00"
-                    v-model.number="price"
-                    class="w-full rounded-lg border border-border/50 bg-background py-2.5 pl-8 pr-4 text-sm placeholder:text-muted-foreground/50 focus:border-foreground/20 focus:outline-none focus:ring-1 focus:ring-foreground/10"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label class="text-xs text-muted-foreground">Compare at price</label>
-                <div class="relative mt-1.5">
-                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
-                  <input
-                    type="number"
-                    placeholder="0.00"
-                    v-model.number="compareAtPrice"
-                    class="w-full rounded-lg border border-border/50 bg-background py-2.5 pl-8 pr-4 text-sm placeholder:text-muted-foreground/50 focus:border-foreground/20 focus:outline-none focus:ring-1 focus:ring-foreground/10"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      
-        <div class="space-y-6">
-        
-          <div class="rounded-lg border border-border/30 bg-card p-6">
-            <h2 class="text-sm font-medium text-foreground">Status</h2>
-            <div class="mt-4">
-              <select v-model="status" class="w-full rounded-lg border border-border/50 bg-background px-4 py-2.5 text-sm focus:border-foreground/20 focus:outline-none focus:ring-1 focus:ring-foreground/10">
-                <option>Draft</option>
-                <option>Active</option>
-              </select>
-            </div>
-          </div>
-
-         
-          <div class="rounded-lg border border-border/30 bg-card p-6">
-            <h2 class="text-sm font-medium text-foreground">Category</h2>
-            <div class="mt-4">
-              <select v-model="category" class="w-full rounded-lg border border-border/50 bg-background px-4 py-2.5 text-sm capitalize focus:border-foreground/20 focus:outline-none focus:ring-1 focus:ring-foreground/10">
-                <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-              </select>
-            </div>
-          </div>
-
        
-          <div class="rounded-lg border border-border/30 bg-card p-6">
-            <h2 class="text-sm font-medium text-foreground">Tags</h2>
-            <div class="mt-4 flex flex-wrap gap-2">
-              <label class="flex cursor-pointer items-center gap-2">
-                <input type="checkbox" value="Featured" v-model="tags" class="rounded border-border" />
-                <span class="text-sm text-muted-foreground">Featured</span>
-              </label>
-              <label class="flex cursor-pointer items-center gap-2">
-                <input type="checkbox" value="New arrival" v-model="tags" class="rounded border-border" />
-                <span class="text-sm text-muted-foreground">New arrival</span>
-              </label>
-            </div>
-          </div>
 
         
           <div class="flex flex-col gap-3">
