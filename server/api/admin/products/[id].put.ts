@@ -5,6 +5,7 @@ import { products } from "~~/server/db/schema/products"
 import fs from 'fs'
 import path from 'path'
 import { eq } from "drizzle-orm"
+import { imageService } from "~~/server/service/imageService"
 
 const productSchema = z.object({
     name: z.string().min(3),
@@ -37,41 +38,54 @@ export default defineEventHandler(async (event) => {
 
     const { textData, imageData } = separateFormData(body)
 
-    const parsedData = productSchema.parse(textData)
+    console.log("textDAta",textData);
+    console.log("imageData",imageData);
 
-    let filename;
-    if (imageData.length !== 0){
-    const uploadDir = path.join(process.cwd(), 'public/uploads/products')
-    if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true })
-    }
-
-    const file = imageData[0]
-     filename = `${Date.now()}-${file.filename || 'file.png'}`
-    fs.writeFileSync(path.join(uploadDir, filename), file.data)
-    }
-
-const id = Number(event.context.params?.id)
+    const id = Number(event.context.params?.id)
 
 const productsRes = await db
   .select()
   .from(products)
   .where(eq(products.id, id))
 
+
 if (productsRes.length === 0) {
   return "no product found"
 }
-
 const product = productsRes[0]
+const foundThumbnail= product.images.find(i=>i==textData.thumbnail)
+
+console.log("foundThumbnail",foundThumbnail);
+
+
+    
+
+//     const parsedData = productSchema.parse(textData)
+
+    let newImgUrl=[];
+    if (imageData.length !== 0){
+   newImgUrl=imageService(imageData)
+    }
+
+    console.log("new image url",newImgUrl);
+    
+const newThumbnail=newImgUrl[0];
+newImgUrl=[textData.dbImages,...newImgUrl]
+const categoryId=textData.categoryId?Number(textData.categoryId):product.categoryId
+const brandId=textData.brandId?Number(textData.brandId):product.brandId
+
 
 const res = await db
   .update(products)
   .set({
-    title: parsedData.name,
-    price: parsedData.price,
-    thumbnail: filename
-      ? `/uploads/products/${filename}`
-      : product.thumbnail,
+    title: textData.title,
+    images:newImgUrl,
+    categoryId:categoryId,
+    brandId:brandId,
+    description:textData.description,
+    thumbnail: foundThumbnail
+      ? foundThumbnail
+      : newThumbnail,
   })
   .where(eq(products.id, id))
 

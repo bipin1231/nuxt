@@ -23,7 +23,6 @@ const isAppending = ref(false)
 
 const cartStore = useCartStore()
 
-
 const buildUrl = () => {
   if (searchQuery.value && title.value && order.value) {
     return `https://dummyjson.com/products/search?q=${searchQuery.value}&sortBy=${title.value}&order=${order.value}&limit=${limit.value}&skip=${skip.value}`

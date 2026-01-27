@@ -1,228 +1,364 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import { useRouter } from '#imports'
-import  AdminHeader  from '~/components/admin/AdminHeader.vue'
+import AdminHeader from '~/components/admin/AdminHeader.vue'
+import {
+  ArrowLeft,
+  Upload,
+  X,
+  ChevronDown,
+  Check,
+  Image as ImageIcon
+} from 'lucide-vue-next'
+import DropdownField from '~/components/DropdownField.vue'
 
-import { ArrowLeft, Upload, X } from 'lucide-vue-next'
-definePageMeta({
-  layout: 'admin',
-})
-// Router for navigation
+definePageMeta({ layout: 'admin' })
+
+
 const router = useRouter()
 
-// Image preview state
-const imagePreview = ref<string | null>(null)
 
-  const isOpen = ref(false)
-
-
-const selectedCategory=ref('Please select a Category')
-
-const selectCategory = (value: string) => {
-  selectedCategory.value = value
-  isOpen.value = false
- 
-}
-const {data:categories} = await useFetch('/api/admin/category')
-const toggleDropdown = () => {
-  isOpen.value = !isOpen.value
-}
-
-const { data: sizes ,refresh} = await useFetch('/api/admin/sizes')
-
-console.log(sizes.value);
-
-
-// Form state (optional, can expand for v-model)
 const productName = ref('')
 const description = ref('')
-const price = ref<number | null>(null)
-const compareAtPrice = ref<number | null>(null)
-const status = ref('Draft')
 
-const tags = ref<string[]>([])
+//category
+const isCategoryDropDownOpen = ref(false)
+const selectedCategory = ref<any>(null)
+ 
+const isBrandDropDownOpen=ref(false)  
+const selectedBrand = ref<any>(null)
+const { data: categories } = await useFetch('/api/admin/category')
+const { data: sizes } = await useFetch('/api/admin/sizes')
+const { data: brands=[]} = await useFetch('/api/admin/brand')
 
-// Handlers
-const handleImageChange = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (file) {
-    imagePreview.value = URL.createObjectURL(file)
+const selectCategory = (cat: any) => {
+  selectedCategory.value = cat
+  isCategoryDropDownOpen.value = false
+  selectedSizes.value = {}
+}
+const selectBrand = (brand: any) => {
+  selectedBrand.value = brand
+  isBrandDropDownOpen.value = false
+
+}
+
+// sizes
+type SizeInput = {
+  sizeId: number | null
+  sellingPrice: number | null
+  costPrice: number | null
+  stock: number | null
+}
+
+const selectedSizes = ref<Record<number, SizeInput>>({})
+
+const filteredSizes = computed(() => {
+  if (!selectedCategory.value) return []
+  return sizes.value?.filter(
+    (s: any) => s.categoryId === selectedCategory.value.id
+  )
+})
+
+
+const toggleSize = (size: any) => {
+  if (selectedSizes.value[size.id]) {
+    delete selectedSizes.value[size.id]
+  } else {
+    selectedSizes.value[size.id] = {
+      sizeId: size.id,
+      sellingPrice: null,
+      costPrice: null,
+      stock: null,
+    }
   }
 }
 
-const removeImage = () => {
-  imagePreview.value = null
+//images
+type ImageItem = {
+  file: File
+  preview: string
 }
 
-const goBack = () => {
-  router.push('/admin/products')
+const images = ref<ImageItem[]>([])
+
+const addImages = (e: Event) => {
+  const files = (e.target as HTMLInputElement).files
+  if (!files) return
+
+  Array.from(files).forEach(file => {
+    images.value.push({
+      file,
+      preview: URL.createObjectURL(file),
+    })
+  })
 }
 
-const createProduct = () => {
-  // Add your create product logic here
+const removeImage = (index: number) => {
+  images.value.splice(index, 1)
+}
+
+const setThumbnail = (index: number) => {
+  const img = images.value.splice(index, 1)[0]
+  images.value.unshift(img)
+}
+
+
+//create product
+const createProduct = async() => {
   console.log({
     productName: productName.value,
     description: description.value,
-    price: price.value,
-    compareAtPrice: compareAtPrice.value,
-    status: status.value,
     category: selectedCategory.value,
-    tags: tags.value,
-    image: imagePreview.value
+    images: images.value,
+    productVariants: selectedSizes.value,
+  })
+ const formData=new FormData()
+ formData.append("title",productName.value)
+  formData.append("description",description.value)
+  formData.append("categoryId",selectedCategory.value.id)
+   formData.append("brandId",selectedBrand.value.id)
+    images.value.forEach(img => {
+    formData.append('images', img.file)
+  })
+
+  formData.append(
+    'productVariants',
+    JSON.stringify(Object.values(selectedSizes.value))
+  )
+
+  const res=await $fetch('/api/admin/products',{
+    method:"POST",
+    body:formData
   })
 }
+
+const goBack = () => router.push('/admin/products')
 </script>
 
 <template>
   <div class="min-h-screen bg-background">
-  
     <AdminHeader
       title="Add product"
       description="Create a new product for your store"
     />
 
     <div class="p-6">
-   
-      <button @click="goBack" class="inline-flex items-center gap-2 text-xs tracking-wide text-muted-foreground transition-colors hover:text-foreground">
-        <ArrowLeft class="h-3 w-3" stroke-width="1.5" />
+      <button
+        @click="goBack"
+        class="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft class="h-3 w-3" />
         Back to products
       </button>
 
-      <form @submit.prevent="createProduct" class="mt-8 grid gap-8 lg:grid-cols-3">
-      
+      <form
+        @submit.prevent="createProduct"
+        class="mt-8 grid gap-8 lg:grid-cols-3"
+      >
+        
         <div class="lg:col-span-2 space-y-6">
-         
+       
           <div class="rounded-lg border border-border/30 bg-card p-6">
-            <h2 class="text-sm font-medium text-foreground">Basic information</h2>
+            <h2 class="text-sm font-medium">Product information</h2>
+
             <div class="mt-6 space-y-4">
               <div>
                 <label class="text-xs text-muted-foreground">Product name</label>
                 <input
-                  type="text"
-                  placeholder="Enter product name"
                   v-model="productName"
-                  class="mt-1.5 w-full rounded-lg border border-border/50 bg-background px-4 py-2.5 text-sm placeholder:text-muted-foreground/50 focus:border-foreground/20 focus:outline-none focus:ring-1 focus:ring-foreground/10"
+                  class="mt-1.5 w-full rounded-lg border border-border/50 bg-background px-4 py-2.5 text-sm"
                 />
               </div>
 
-                          <div class="mb-2">
+              <!-- CATEGORY -->
+              <!-- <div>
                 <label class="text-xs text-muted-foreground">Category</label>
-                <div class="relative">
+                <div class="relative mt-1.5">
                   <button
                     type="button"
-                    @click="toggleDropdown"
-                    class="w-full text-muted-foreground rounded-lg border border-border/50 bg-background px-4 py-2.5 text-left text-sm flex items-center justify-between"
+                    @click="isOpen = !isOpen"
+                    class="w-full rounded-lg border border-border/50 bg-background px-4 py-2.5 text-left text-sm flex justify-between"
                   >
-                    <span>{{ selectedCategory }}</span>
+                    <span>
+                      {{ selectedCategory?.title || 'Select category' }}
+                    </span>
                     <ChevronDown
-                      class="h-4 w-4 text-muted-foreground transition-transform"
+                      class="h-4 w-4 transition-transform"
                       :class="{ 'rotate-180': isOpen }"
                     />
                   </button>
 
                   <div
                     v-if="isOpen"
-                    class="absolute z-50 mt-2 w-full rounded-lg border border-border/50 bg-white shadow-lg"
+                    class="absolute z-50 mt-2 w-full rounded-lg border bg-card shadow"
                   >
                     <button
-                      v-for="category in categories"
-                      :key="category.id"
+                      v-for="cat in categories"
+                      :key="cat.id"
                       type="button"
-                      @click="selectCategory(category.title)"
-                      class="w-full px-4 py-2.5 text-left text-sm hover:bg-muted/50 flex items-center justify-between"
+                      @click="selectCategory(cat)"
+                      class="w-full px-4 py-2 text-sm text-left hover:bg-muted flex justify-between"
                     >
-                      <span>{{ category.title }}</span>
-                      <Check v-if="selectedCategory === category.title" class="h-4 w-4" />
+                      {{ cat.title }}
+                      <Check
+                        v-if="selectedCategory?.id === cat.id"
+                        class="h-4 w-4"
+                      />
                     </button>
                   </div>
                 </div>
+              </div> -->
+              
+                <DropdownField
+          label="Category"
+          :items="categories"
+          :isOpen="isCategoryDropDownOpen"
+          :selectedItem="selectedCategory"
+         @toggleBrandDropdown="isCategoryDropDownOpen=!isCategoryDropDownOpen" 
+         @selectItem="selectCategory"
+          />
+              
+              <!-- SIZES -->
+          <div
+            v-if="filteredSizes.length"
+            class="rounded-lg border border-border/30 bg-card p-6"
+          >
+            <h2 class="text-sm font-medium">Sizes</h2>
+
+            <div class="mt-4 space-y-4">
+              <div
+                v-for="size in filteredSizes"
+                :key="size.id"
+                class="rounded-lg border border-border/50 p-4"
+              >
+                <label class="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    :checked="!!selectedSizes[size.id]"
+                    @change="toggleSize(size)"
+                  />
+                  <span class="font-medium">{{ size.title }}</span>
+                </label>
 
                 <div
-                  v-if="isOpen"
-                  @click="isOpen = false"
-                  class="fixed inset-0 z-40"
-                ></div>
+                  v-if="selectedSizes[size.id]"
+                  class="mt-4 grid gap-4 sm:grid-cols-3"
+                >
+                  <input
+                    type="number"
+                    placeholder="Selling price"
+                    v-model.number="selectedSizes[size.id].sellingPrice"
+                    class="rounded-lg border px-3 py-2 text-sm"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Cost price"
+                    v-model.number="selectedSizes[size.id].costPrice"
+                    class="rounded-lg border px-3 py-2 text-sm"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Stock"
+                    v-model.number="selectedSizes[size.id].stock"
+                    class="rounded-lg border px-3 py-2 text-sm"
+                  />
+                </div>
               </div>
+            </div>
+          </div>
+
+          <DropdownField
+          label="Brand"
+          :items="brands"
+          :isOpen="isBrandDropDownOpen"
+          :selectedItem="selectedBrand"
+         @toggleBrandDropdown="isBrandDropDownOpen=!isBrandDropDownOpen" 
+         @selectItem="selectBrand"
+          />
 
               <div>
                 <label class="text-xs text-muted-foreground">Description</label>
                 <textarea
-                  rows="4"
-                  placeholder="Describe your product..."
                   v-model="description"
-                  class="mt-1.5 w-full rounded-lg border border-border/50 bg-background px-4 py-2.5 text-sm placeholder:text-muted-foreground/50 focus:border-foreground/20 focus:outline-none focus:ring-1 focus:ring-foreground/10"
+                  rows="4"
+                  class="mt-1.5 w-full rounded-lg border border-border/50 bg-background px-4 py-2.5 text-sm"
                 />
               </div>
             </div>
           </div>
 
-       
 
-         
-          <div class="rounded-lg border border-border/30 bg-card p-6">
-            <h2 class="text-sm font-medium text-foreground">Pricing</h2>
-            <div class="mt-6 grid gap-4 sm:grid-cols-2">
-              <div>
-                <label class="text-xs text-muted-foreground">Price</label>
-                <div class="relative mt-1.5">
-                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
-                  <input
-                    type="number"
-                    placeholder="0.00"
-                    v-model.number="price"
-                    class="w-full rounded-lg border border-border/50 bg-background py-2.5 pl-8 pr-4 text-sm placeholder:text-muted-foreground/50 focus:border-foreground/20 focus:outline-none focus:ring-1 focus:ring-foreground/10"
-                  />
-                </div>
-              </div>
-
-
-            </div>
-          </div>
         </div>
 
-      
+     
         <div class="space-y-6">
-        
 
-
-   
           <div class="rounded-lg border border-border/30 bg-card p-6">
-            <h2 class="text-sm font-medium text-foreground">Image</h2>
-            <div class="mt-6">
-              <div v-if="imagePreview" class="relative aspect-video overflow-hidden rounded-lg bg-secondary">
-                <img
-                  :src="imagePreview || '/placeholder.svg'"
-                  alt="Preview"
-                  class="h-full w-full object-cover"
-                />
+            <h2 class="text-sm font-medium">Images</h2>
+
+            <div class="mt-4 grid grid-cols-3 gap-3">
+              <div
+                v-for="(img, i) in images"
+                :key="i"
+                class="relative group aspect-square rounded-lg overflow-hidden border"
+              >
+                <img :src="img.preview" class="h-full w-full object-cover" />
+
                 <button
                   type="button"
-                  @click="removeImage"
-                  class="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-foreground/80 text-background transition-colors hover:bg-foreground"
+                  @click="removeImage(i)"
+                  class="absolute top-1 right-1 bg-black/70 text-white rounded-full p-1"
                 >
-                  <X class="h-4 w-4" stroke-width="1.5" />
+                  <X class="h-3 w-3" />
                 </button>
+
+                <button
+                  v-if="i !== 0"
+                  type="button"
+                  @click="setThumbnail(i)"
+                  class="absolute bottom-1 left-1 text-xs bg-black/70 text-white px-2 py-0.5 rounded"
+                >
+                  Set thumbnail
+                </button>
+
+                <span
+                  v-else
+                  class="absolute bottom-1 left-1 text-xs bg-green-600 text-white px-2 py-0.5 rounded"
+                >
+                  Thumbnail
+                </span>
               </div>
-              <label v-else class="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border/50 p-12 transition-colors hover:border-foreground/20">
-                <Upload class="h-8 w-8 text-muted-foreground/50" stroke-width="1" />
-                <p class="mt-3 text-sm text-muted-foreground">Click to upload or drag and drop</p>
-                <p class="mt-1 text-xs text-muted-foreground/60">PNG, JPG up to 10MB</p>
-                <input type="file" accept="image/*" class="hidden" @change="handleImageChange" />
+
+              <label
+                class="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed"
+              >
+                <Upload class="h-5 w-5 text-muted-foreground" />
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  class="hidden"
+                  @change="addImages"
+                />
               </label>
             </div>
           </div>
-       
 
-        
-          <div class="flex flex-col gap-3">
-            <button type="submit" class="w-full rounded-lg bg-foreground px-4 py-2.5 text-sm tracking-wide text-background transition-opacity hover:opacity-90">
-              Create product
-            </button>
-            <button type="button" @click="goBack" class="w-full rounded-lg border border-border/50 px-4 py-2.5 text-center text-sm tracking-wide text-muted-foreground transition-colors hover:text-foreground">
-              Cancel
-            </button>
-          </div>
+     
+          <button
+            type="submit"
+            class="w-full rounded-lg bg-foreground py-2.5 text-sm text-background"
+          >
+            Create product
+          </button>
+
+          <button
+            type="button"
+            @click="goBack"
+            class="w-full rounded-lg border py-2.5 text-sm text-muted-foreground"
+          >
+            Cancel
+          </button>
         </div>
       </form>
     </div>
