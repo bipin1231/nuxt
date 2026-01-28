@@ -15,7 +15,7 @@ export default defineEventHandler(async (event)=>{
         id:productVariants.id,
         sellingPrice:productVariants.sellingPrice,
         costPrice:productVariants.costPrice,
-        stock:productVariants.costPrice,
+        stock:productVariants.stock,
         size:sizes.title
       })
       .from(productVariants)

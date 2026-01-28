@@ -1,18 +1,21 @@
 <script setup>
-import { Toaster } from 'vue-sonner'
+import { toast, Toaster } from 'vue-sonner'
 const { user, fetchUser } = useAuth()
 console.log(user.value);
 
 await fetchUser()
 console.log(user.value);
+
 </script>
 
 <template>
   <Toaster
     richColors
     position="top-right"
+class="bg-red"
     :toastOptions="{
       style: {
+        
         zIndex: 99999,
         position: 'fixed'
       }

@@ -3,14 +3,15 @@ import { ref, watch } from 'vue'
 import { useRoute, useRouter } from '#imports'
 import AdminHeader from '~/components/admin/AdminHeader.vue'
 import { Plus, Pencil, Trash2, Search, X } from 'lucide-vue-next'
+import { toast } from 'vue-sonner'
 
 definePageMeta({ layout: 'admin' })
 
 const route = useRoute()
 const router = useRouter()
 
-const isCategoryDropDownOpen = ref(false)
-const selectedCategory = ref<any>(null)
+const isSizesDropDownOpen = ref(false)
+const selectedSizes = ref<any>(null)
  
 const isBrandDropDownOpen=ref(false)  
 const selectedBrand = ref<any>(null)
@@ -18,9 +19,9 @@ const { data: categories } = await useFetch('/api/admin/category')
 const { data: sizes } = await useFetch('/api/admin/sizes')
 const { data: brands=[]} = await useFetch('/api/admin/brand')
 
-const selectCategory = (cat: any) => {
-  selectedCategory.value = cat
-  isCategoryDropDownOpen.value = false
+const selectSizes = (cat: any) => {
+  selectedSizes.value = cat
+  isSizesDropDownOpen.value = false
 }
 const selectBrand = (brand: any) => {
   selectedBrand.value = brand
@@ -30,7 +31,7 @@ const selectBrand = (brand: any) => {
 
 
 /* PRODUCTS */
-const { data: products } = await useFetch('/api/admin/products')
+const { data: products,refresh } = await useFetch('/api/admin/products')
 
 /* SEARCH */
 const searchQuery = ref((route.query.search as string) || '')
@@ -42,16 +43,13 @@ const selectedProduct = ref<any>(null)
 /* VARIANTS STATE */
 const variants = ref<any[]>([])
 const loadingVariants = ref(false)
+const fetchVariants = async () => {
+  if (!selectedProduct.value) return
 
-/* OPEN POPUP + FETCH VARIANTS */
-const openVariants = async (product: any) => {
-  selectedProduct.value = product
-  showVariants.value = true
   loadingVariants.value = true
-
   try {
     const res = await $fetch('/api/admin/productVariants', {
-      query: { productId: product.id },
+      query: { productId: selectedProduct.value.id },
     })
     variants.value = res
   } catch (e) {
@@ -62,6 +60,12 @@ const openVariants = async (product: any) => {
   }
 }
 
+
+const openVariants = async (product: any) => {
+  selectedProduct.value = product
+  showVariants.value = true
+  await fetchVariants()
+}
 /* CLOSE POPUP */
 const closeVariants = () => {
   showVariants.value = false
@@ -75,66 +79,62 @@ watch(searchQuery, (value) => {
 })
 
 // Product Edit 
-const showEditProduct = ref(false)
+const showEditProductVariant = ref(false)
 const editingProduct = ref<any>(null)
 
-  // images already in DB (string URLs)
-const dbImages = ref<string[]>([])
 
-// newly selected files
-const newImages = ref<File[]>([])
 
-// DB images user wants to delete
-const removedImages = ref<string[]>([])
+const openEditProductVariants = (productVariants: any) => {
+  editingProduct.value = { ...productVariants }
 
-const openEditProduct = (product: any) => {
-  editingProduct.value = { ...product }
+  selectedSizes.value = productVariants.size
+ 
 
-  selectedCategory.value = product.category
-  selectedBrand.value = product.brand
-
-  // DB images only (string URLs)
-  dbImages.value = [...(product.images || [])]
-
-  newImages.value = []
-  removedImages.value = []
-
-  showEditProduct.value = true
-}
-
-const onNewImagesChange = (e: Event) => {
-  const files = Array.from(
-    (e.target as HTMLInputElement).files || []
-  )
-  newImages.value.push(...files)
-}
-
-const removeDbImage = (img: string) => {
-  dbImages.value = dbImages.value.filter(i => i !== img)
-  removedImages.value.push(img)
-}
-
-const removeNewImage = (index: number) => {
-  newImages.value.splice(index, 1)
+  showEditProductVariant.value = true
 }
 
 
-const closeEditProduct = () => {
-  showEditProduct.value = false
+
+const closeEditProductVariants = () => {
+  showEditProductVariant.value = false
   editingProduct.value = null
 }
-const updateProduct = async () => {
+const updateProductVaraints = async () => {
 
-  console.log(selectedCategory.value);
-  console.log(selectedBrand.value);
-  console.log(editingProduct.value);
+console.log(editingProduct.value);
+
+  console.log(selectedSizes.value?.id);
+
+  const payload={
+    sizeId:selectedSizes.value?.id,
+    sellingPrice:editingProduct.value.sellingPrice,
+    costPrice:editingProduct.value.costPrice,
+    stock:editingProduct.value.stock,
+  }
   
-  // await $fetch(`/api/admin/products/${editingProduct.value.id}`, {
-  //   method: 'PUT',
-  //   body: editingProduct.value,
-  // })
-  // closeEditProduct()
+  try{
+  const res=await $fetch(`/api/admin/productVariants/${editingProduct.value.id}`, {
+    method: 'PUT',
+    body: payload,
+  })
+  toast.success('Updated successfully')
+
+    closeEditProductVariants()
+    await fetchVariants()
+  }catch(error){
+    toast.error("error",error)
+  }
+
+
+  
+  // closeEditProductVariants()
   // refresh()
+}
+const handleProductDelete=async (id)=>{
+  const res=await $fetch(`/api/admin/products/${id}`,{
+    method:"DELETE"
+  })
+  refresh()
 }
 
 const handleProductEdit=(id)=>{
@@ -227,7 +227,9 @@ const handleProductEdit=(id)=>{
                   <Pencil
                   @click.stop="handleProductEdit(product.id)"
                   class="h-4 w-4 text-muted-foreground" />
-                  <Trash2 class="h-4 w-4 text-destructive" />
+                  <Trash2 
+                    @click.stop="handleProductDelete(product.id)"
+                  class="h-4 w-4 text-destructive" />
                 </div>
               </td>
             </tr>
@@ -287,6 +289,16 @@ const handleProductEdit=(id)=>{
                 <td class="py-2 text-right text-sm">
                   {{ variant.stock }}
                 </td>
+                              <td class="px-5 py-4 text-right">
+                <div class="flex justify-end gap-2">
+                  <Pencil
+                  @click="openEditProductVariants(variant)"
+                  class="h-4 w-4 text-muted-foreground" />
+                  <Trash2 
+                   
+                  class="h-4 w-4 text-destructive" />
+                </div>
+              </td>
               </tr>
             </tbody>
           </table>
@@ -305,127 +317,70 @@ const handleProductEdit=(id)=>{
     <!-- Edit Product Popup -->
   
     <div
-      v-if="showEditProduct"
-      @click.self="showEditProduct=!showEditProduct"
+      v-if="showEditProductVariant"
+      @click.self="closeEditProductVariants"
  class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
     >
       <div class="w-full max-w-md rounded-xl bg-card shadow-xl border border-border/40 p-6">
         <div class="flex justify-between mb-4">
           <h3 class="text-sm font-medium">Edit Product</h3>
-          <button @click="closeEditProduct">
+          <button @click="closeEditProductVariants">
             <X class="h-4 w-4 text-muted-foreground" />
           </button>
         </div>
 
         <div class="space-y-4">
-           <label class="block text-xs font-medium text-muted-foreground mb-1" for="category">
-          Product Name
+
+        <DropdownField
+          label="Sizes"
+          :items="sizes"
+          :defaultValue="editingProduct.size"
+          :isOpen="isSizesDropDownOpen"
+          :selectedItem="selectedSizes"
+         @toggleBrandDropdown="isSizesDropDownOpen=!isSizesDropDownOpen" 
+         @selectItem="selectSizes"
+          />
+
+        <label class="block text-xs font-medium text-muted-foreground mb-1" for="category">
+          Selling Price
         </label>
         <input
 
-          type="text"
-          v-model="editingProduct.title"
+          type="number"
+          v-model="editingProduct.sellingPrice"
           class="w-full rounded-lg border border-border/50 bg-background py-2 px-4 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-foreground/10 focus:border-foreground/20 mb-2"
         />
-        <DropdownField
-          label="Category"
-          :items="categories"
-          :isOpen="isCategoryDropDownOpen"
-          :selectedItem="selectedCategory"
-         @toggleBrandDropdown="isCategoryDropDownOpen=!isCategoryDropDownOpen" 
-         @selectItem="selectCategory"
-          />
-          <DropdownField
-          label="Brand"
-          :items="brands"
-          :isOpen="isBrandDropDownOpen"
-          :selectedItem="selectedBrand"
-         @toggleBrandDropdown="isBrandDropDownOpen=!isBrandDropDownOpen" 
-         @selectItem="selectBrand"
-          />
-        <label class="block text-xs font-medium text-muted-foreground mb-1" for="category">
-         Description
+                   <label class="block text-xs font-medium text-muted-foreground mb-1" for="category">
+          Cost Price
         </label>
-          <textarea
-            v-model="editingProduct.description"
+        <input
+
+          type="number"
+          v-model="editingProduct.costPrice"
           class="w-full rounded-lg border border-border/50 bg-background py-2 px-4 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-foreground/10 focus:border-foreground/20 mb-2"
         />
-<!-- IMAGES -->
-<div class="rounded-lg border border-border/30 bg-card p-6">
-  <h2 class="text-sm font-medium">Images</h2>
+           <label class="block text-xs font-medium text-muted-foreground mb-1" for="category">
+         Stock
+        </label>
+        <input
 
-  <div class="mt-4 grid grid-cols-3 gap-3">
-
-    <!-- DB IMAGES -->
-    <div
-      v-for="(img, i) in dbImages"
-      :key="'db-' + i"
-      class="relative aspect-square rounded-lg overflow-hidden border"
-    >
-      <img :src="img" class="h-full w-full object-cover" />
-
-      <button
-        type="button"
-        @click="removeDbImage(img)"
-        class="absolute top-1 right-1 bg-black/70 text-white rounded-full p-1"
-      >
-        <X class="h-3 w-3" />
-      </button>
-
-      <span
-        v-if="i === 0"
-        class="absolute bottom-1 left-1 text-xs bg-green-600 text-white px-2 py-0.5 rounded"
-      >
-        Thumbnail
-      </span>
-    </div>
-
-    <!-- NEW IMAGES -->
-    <div
-      v-for="(file, i) in newImages"
-      :key="'new-' + i"
-      class="relative aspect-square rounded-lg overflow-hidden border"
-    >
-      <img
-        :src="URL.createObjectURL(file)"
-        class="h-full w-full object-cover"
-      />
-
-      <button
-        type="button"
-        @click="removeNewImage(i)"
-        class="absolute top-1 right-1 bg-black/70 text-white rounded-full p-1"
-      >
-        <X class="h-3 w-3" />
-      </button>
-    </div>
-
-    <!-- ADD IMAGE -->
-    <label
-      class="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed"
-    >
-      <Plus class="h-5 w-5 text-muted-foreground" />
-      <input
-        type="file"
-        multiple
-        accept="image/*"
-        class="hidden"
-        @change="onNewImagesChange"
-      />
-    </label>
-  </div>
-</div>
+          type="number"
+          v-model="editingProduct.stock"
+          class="w-full rounded-lg border border-border/50 bg-background py-2 px-4 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-foreground/10 focus:border-foreground/20 mb-2"
+        />
 
 
-                  <div class="flex justify-end gap-2 mt-4">
+
+
+        <div class="flex justify-end gap-2 mt-4">
           <button
-            @click="$emit('cancelModal')"
+            @click="showEditProductVariant=!showEditProductVariant"
             class="px-3 py-1.5 text-xs rounded-lg bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors"
           >
             Cancel
           </button>
           <button
-            @click="updateProduct"
+            @click="updateProductVaraints"
             class="flex items-center gap-2 px-3.5 py-1.5 text-xs rounded-lg bg-foreground text-background transition-opacity hover:opacity-90"
           >
             <Plus class="h-3.5 w-3.5" stroke-width="1.5" />

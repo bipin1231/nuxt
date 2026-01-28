@@ -2,6 +2,7 @@
 import { ChevronDown, Check } from 'lucide-vue-next'
 
 defineProps<{
+  defaultValue:string
   label: string
   selectedItem: string
   items: any[]
@@ -24,7 +25,7 @@ const emit = defineEmits<{
         @click="emit('toggleBrandDropdown')"
         class="w-full rounded-lg border border-border/50 bg-background px-4 py-2.5 text-left text-sm flex justify-between"
       >
-        <span>{{ selectedItem?.title || "Select a item" }}</span>
+        <span>{{ selectedItem?.title || defaultValue || "Select a item" }}</span>
         <ChevronDown
           class="h-4 w-4 transition-transform"
           :class="{ 'rotate-180': isOpen }"
