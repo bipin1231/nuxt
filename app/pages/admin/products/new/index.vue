@@ -11,6 +11,8 @@ import {
   Image as ImageIcon
 } from 'lucide-vue-next'
 import DropdownField from '~/components/DropdownField.vue'
+import { toast } from 'vue-sonner'
+import { p } from 'vue-router/dist/router-CWoNjPRp.mjs'
 
 definePageMeta({ layout: 'admin' })
 
@@ -126,10 +128,21 @@ const createProduct = async() => {
     JSON.stringify(Object.values(selectedSizes.value))
   )
 
+  try{
   const res=await $fetch('/api/admin/products',{
     method:"POST",
     body:formData
   })
+  toast.success("Product added Successfully")
+  productName.value=""
+  description.value=""
+  selectedCategory.value=""
+  selectedBrand.value=""
+  images.value=[]
+  }catch(err){
+    toast.error(err)
+  }
+
 }
 
 const goBack = () => router.push('/admin/products')

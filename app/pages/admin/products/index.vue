@@ -2,7 +2,7 @@
 import { ref, watch,reactive } from 'vue'
 import { useRoute, useRouter } from '#imports'
 import AdminHeader from '~/components/admin/AdminHeader.vue'
-import { Plus, Pencil, Trash2, Search, X, MoreHorizontal } from 'lucide-vue-next'
+import { Plus, Pencil, Trash2, Search, X } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import ProductVariantForm from '~/components/admin/ProductVariantForm.vue'
 
@@ -321,6 +321,9 @@ const handleProductEdit=(id)=>{
               </th>
               <th class="px-5 py-3 text-right text-xs text-muted-foreground">Description</th>
               <th class="px-5 py-3 text-right"></th>
+              <th class="px-5 py-3 text-right text-xs font-normal text-muted-foreground">
+                <span class="sr-only">Actions</span>
+              </th>
             </tr>
           </thead>
 
@@ -328,7 +331,7 @@ const handleProductEdit=(id)=>{
             <tr
               v-for="product in products"
               :key="product.id"
-              class="cursor-pointer hover:bg-secondary/30"
+              class="group cursor-pointer hover:bg-secondary/30"
               @click="openVariants(product)"
             >
               <td class="px-5 py-4">
@@ -358,20 +361,37 @@ const handleProductEdit=(id)=>{
                 {{ product?.description }}
               </td>
 
-              <td class="px-5 py-4 text-right">
-                <div class="flex justify-end gap-2">
-                  <Pencil
-                  @click.stop="handleProductEdit(product.id)"
-                  class="h-4 w-4 text-muted-foreground" />
-                  <Trash2 
-                      @click.stop="openDeleteConfirmationModel({
+
+
+               <td class="px-5 py-4 text-right">
+                <div class="flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                  <button
+                    type="button"
+                    @click.stop="handleProductEdit(product.id)"
+                    class="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  >
+                    <Pencil class="h-3.5 w-3.5" stroke-width="1.5" />
+                  </button>
+                  <button
+                    type="button"
+                         @click.stop="openDeleteConfirmationModel({
     label: 'Product',
     itemToDelete: product,
     type: 'product'
   })"
-                  class="h-4 w-4 text-destructive" />
+                    class="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <Trash2 class="h-3.5 w-3.5 text-destructive" stroke-width="1.5" />
+                  </button>
+                  <button
+                    type="button"
+                    class="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  >
+                    <MoreHorizontal class="h-3.5 w-3.5" stroke-width="1.5" />
+                  </button>
                 </div>
               </td>
+
             </tr>
           </tbody>
         </table>
@@ -427,7 +447,7 @@ const handleProductEdit=(id)=>{
             </thead>
 
             <tbody class="divide-y divide-border/20">
-              <tr v-for="variant in variants" :key="variant.id">
+              <tr class="group" v-for="variant in variants" :key="variant.id">
                 <td class="py-2 text-sm">{{ variant.size }}</td>
                 <td class="py-2 text-right text-sm">
                   Rs.{{ variant.sellingPrice }}
@@ -439,22 +459,37 @@ const handleProductEdit=(id)=>{
                   {{ variant.stock }}
                 </td>
 
- 
 
-                              <td class="px-5 py-4 text-right">
-                <div class="flex justify-end gap-2">
-                  <Pencil
-                  @click="openEditProductVariants(variant)"
-                  class="h-4 w-4 text-muted-foreground" />
-                  <Trash2 
- @click="openDeleteConfirmationModel({
+
+               <td class=" py-2 text-right">
+                <div class="flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                  <button
+                    type="button"
+                    @click="openEditProductVariants(variant)"
+                    class="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  >
+                    <Pencil class="h-3.5 w-3.5" stroke-width="1.5" />
+                  </button>
+                  <button
+                    type="button"
+  @click="openDeleteConfirmationModel({
     label: 'Product Variant',
     itemToDelete: variant,
     type: 'variant'
   })"
-                  class="h-4 w-4 text-destructive" />
+                    class="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <Trash2 class="h-3.5 w-3.5 text-destructive" stroke-width="1.5" />
+                  </button>
+                  <button
+                    type="button"
+                    class="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  >
+                    <MoreHorizontal class="h-3.5 w-3.5" stroke-width="1.5" />
+                  </button>
                 </div>
               </td>
+
               </tr>
             </tbody>
           </table>

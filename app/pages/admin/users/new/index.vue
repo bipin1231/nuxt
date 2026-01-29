@@ -5,6 +5,7 @@ import AdminHeader from '~/components/admin/AdminHeader.vue'
 import { categories } from '~/lib/store-data'
 import { ArrowLeft, Upload, X, ChevronDown, Check } from 'lucide-vue-next'
 import { is } from 'drizzle-orm'
+import { toast } from 'vue-sonner'
 
 definePageMeta({
   layout: 'admin',
@@ -63,7 +64,7 @@ const isOpen = ref(false)
 const isLoading = ref(false)
 
 const roleOptions = [
-  { value: 'user', label: 'User' },
+  { value: 'viewer', label: 'Viewer' },
   { value: 'admin', label: 'Admin' },
   { value: 'editor', label: 'Editor' }
 ]
@@ -111,10 +112,17 @@ const addUser = async () => {
     method:'POST',
     body:formData,
   });
- 
-  router.push('/admin/users');
+  toast.success("User added successfully")
+  userForm.name=''
+  userForm.email=''
+  userForm.password=''
+  userForm.confirmPassword=''
+  userForm.role=''
+  userForm.avatar=null
+  
  }catch(error){
   console.error("Error adding user:",error);
+    toast.error("Error adding user:",error)
  }finally{
   isLoading.value=false;
 }

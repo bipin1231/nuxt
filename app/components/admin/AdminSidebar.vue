@@ -35,9 +35,10 @@ const navigation = [
   { name: 'Overview', href: '/admin', icon: LayoutDashboard },
   { name: 'Products', href: '/admin/products', icon: Package },
   // { name: 'Orders', href: '/admin/orders', icon: ShoppingCart },
-  // { name: 'Customers', href: '/admin/customers', icon: Users },
+  { name: 'Product Config', href: '/admin/product-config/category', icon: ShoppingCart },
+  { name: 'Customers', href: '/admin/customers', icon: Users },
   { name: 'Users', href: '/admin/users', icon: User2Icon },
-    { name: 'Product Config', href: '/admin/product-config/category', icon: ShoppingCart },
+    
   // { name: 'Settings', href: '/admin/settings', icon: Settings },
 ]
 
