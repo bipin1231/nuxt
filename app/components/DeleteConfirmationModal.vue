@@ -3,7 +3,7 @@ import { Trash2, X } from 'lucide-vue-next';
 
 const props = defineProps<{
   showDeleteModal: boolean;
-  label: string;
+  label: string | null;
   itemToDelete: { id: number; title: string } | null;
 
 }>();

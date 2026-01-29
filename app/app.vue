@@ -1,4 +1,5 @@
 <script setup>
+import 'vue-sonner/style.css'
 import { toast, Toaster } from 'vue-sonner'
 const { user, fetchUser } = useAuth()
 console.log(user.value);
@@ -9,19 +10,10 @@ console.log(user.value);
 </script>
 
 <template>
-  <Toaster
-    richColors
-    position="top-right"
-class="bg-red"
-    :toastOptions="{
-      style: {
-        
-        zIndex: 99999,
-        position: 'fixed'
-      }
-    }"
-  />
+ <Toaster richColors  position="top-right" />
+ 
   <NuxtLayout>
+
 
     <NuxtPage />
   </NuxtLayout>

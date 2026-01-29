@@ -1,14 +1,31 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch,reactive } from 'vue'
 import { useRoute, useRouter } from '#imports'
 import AdminHeader from '~/components/admin/AdminHeader.vue'
-import { Plus, Pencil, Trash2, Search, X } from 'lucide-vue-next'
+import { Plus, Pencil, Trash2, Search, X, MoreHorizontal } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
+import ProductVariantForm from '~/components/admin/ProductVariantForm.vue'
 
 definePageMeta({ layout: 'admin' })
+type ProductVariantForm={
+  sizeId:number,
+  sellingPrice:number,
+  costPrice:number,
+  stock:number
+}
 
+const addProductVaraintsForm =reactive({
+   sizeId:null,
+  sellingPrice:null,
+  costPrice:null,
+  stock:null
+
+
+})
 const route = useRoute()
 const router = useRouter()
+
+
 
 const isSizesDropDownOpen = ref(false)
 const selectedSizes = ref<any>(null)
@@ -22,25 +39,36 @@ const { data: brands=[]} = await useFetch('/api/admin/brand')
 const selectSizes = (cat: any) => {
   selectedSizes.value = cat
   isSizesDropDownOpen.value = false
+  console.log("selectedsizes",selectedSizes.value);
+  
 }
 const selectBrand = (brand: any) => {
   selectedBrand.value = brand
   isBrandDropDownOpen.value = false
 
 }
-
-
-/* PRODUCTS */
-const { data: products,refresh } = await useFetch('/api/admin/products')
-
-/* SEARCH */
+// search
 const searchQuery = ref((route.query.search as string) || '')
+watch(searchQuery, (value) => {
+  router.replace({ query: { ...route.query, search: value || undefined } })
+})
 
-/* POPUP STATE */
+
+// products
+const { data: products,refresh } = await useFetch('/api/admin/products',{
+    query:{
+      search:searchQuery
+    }
+  })
+
+
+
+
+// popup state
 const showVariants = ref(false)
 const selectedProduct = ref<any>(null)
 
-/* VARIANTS STATE */
+// variants state
 const variants = ref<any[]>([])
 const loadingVariants = ref(false)
 const fetchVariants = async () => {
@@ -53,7 +81,7 @@ const fetchVariants = async () => {
     })
     variants.value = res
   } catch (e) {
-    console.error('Failed to fetch variants', e)
+    toast.error('Failed to fetch variants', e)
     variants.value = []
   } finally {
     loadingVariants.value = false
@@ -66,21 +94,29 @@ const openVariants = async (product: any) => {
   showVariants.value = true
   await fetchVariants()
 }
-/* CLOSE POPUP */
+// close popup
 const closeVariants = () => {
   showVariants.value = false
   selectedProduct.value = null
   variants.value = []
 }
 
-/* WATCH SEARCH */
-watch(searchQuery, (value) => {
-  router.replace({ query: { ...route.query, search: value || undefined } })
-})
 
 // Product Edit 
 const showEditProductVariant = ref(false)
 const editingProduct = ref<any>(null)
+
+const showAddProductVariant = ref(false)
+
+const openAddProductVaraints=()=>{
+  console.log("selected product",selectedProduct.value);
+  
+  showAddProductVariant.value=true
+}
+const closeAddProductVaraints=()=>{
+  showAddProductVariant.value=false
+}
+
 
 
 
@@ -122,19 +158,119 @@ console.log(editingProduct.value);
     closeEditProductVariants()
     await fetchVariants()
   }catch(error){
-    toast.error("error",error)
+    console.log(error);
+    
+    toast.error("error"+error)
   }
+}
+const addProductVaraints = async () => {
 
+console.log(editingProduct.value);
+
+  console.log(selectedSizes.value?.id);
+
+
+
+  const payload={
+    productId:selectedProduct.value?.id,
+    sizeId:selectedSizes.value?.id,
+    sellingPrice:addProductVaraintsForm?.sellingPrice,
+    costPrice:addProductVaraintsForm?.costPrice,
+    stock:addProductVaraintsForm?.stock,
+  }
+  console.log("payload",payload);
+  
+  try{
+  const res=await $fetch(`/api/admin/productVariants`, {
+    method: 'POST',
+    body: payload,
+  })
+  toast.success('Updated successfully')
+
+    // closeEditProductVariants()
+    // await fetchVariants()
+}catch (err: any) {
+  toast.error(err.data?.statusMessage)
+}
+}
+
+
+const handleProductDelete=async ()=>{
+  // const res=await $fetch(`/api/admin/products/${deleteModel.itemToDelete.id}`,{
+  //   method:"DELETE"
+  // })
+  deleteModel.label=null,
+deleteModel.itemToDelete=null
+deleteModel.showDeleteModal=false
+  refresh()
+}
+fetch
+
+
+const deleteModel = reactive<{
+  label: string | null
+  showDeleteModal: boolean
+  itemToDelete: any
+
+  type: 'product' | 'variant' | null
+}>({
+  label: null,
+  showDeleteModal: false,
+  itemToDelete: null,
+  type: null,
+  
+})
+
+const openDeleteConfirmationModel = ({ label, itemToDelete, type }) => {
+  deleteModel.label = label
+  deleteModel.itemToDelete = itemToDelete
+  deleteModel.type = type
+  deleteModel.showDeleteModal = true
+
+}
+const closeDeleteConfirmationModel=()=>{
+  deleteModel.label = null
+  deleteModel.itemToDelete = null
+  deleteModel.type = null
+  deleteModel.showDeleteModal = false
+}
+
+const handleDelete = async () => {
+  try {
+    if (deleteModel.type === 'product') {
+      await $fetch(`/api/admin/products/${deleteModel.itemToDelete.id}`, {
+        method: 'DELETE',
+      })
+      toast.success('Product deleted')
+      await refresh()
+    }
+
+    if (deleteModel.type === 'variant') {
+      await $fetch(`/api/admin/productVariants/${deleteModel.itemToDelete.id}`, {
+        method: 'DELETE',
+      })
+      toast.success('Variant deleted')
+      await fetchVariants()
+    }
+  } catch (err: any) {
+    toast.error(err.data?.statusMessage || 'Delete failed')
+  } finally {
+    deleteModel.showDeleteModal = false
+    deleteModel.itemToDelete = null
+    deleteModel.label = null
+    deleteModel.type = null
+  }
+}
+
+
+const handleProductVaraintDelete=async (id)=>{
 
   
-  // closeEditProductVariants()
+
+  // const res=await $fetch(`/api/admin/productVariants/${id}`,{
+  //   method:"DELETE"
+  // })
   // refresh()
-}
-const handleProductDelete=async (id)=>{
-  const res=await $fetch(`/api/admin/products/${id}`,{
-    method:"DELETE"
-  })
-  refresh()
 }
 
 const handleProductEdit=(id)=>{
@@ -228,7 +364,11 @@ const handleProductEdit=(id)=>{
                   @click.stop="handleProductEdit(product.id)"
                   class="h-4 w-4 text-muted-foreground" />
                   <Trash2 
-                    @click.stop="handleProductDelete(product.id)"
+                      @click.stop="openDeleteConfirmationModel({
+    label: 'Product',
+    itemToDelete: product,
+    type: 'product'
+  })"
                   class="h-4 w-4 text-destructive" />
                 </div>
               </td>
@@ -254,9 +394,18 @@ const handleProductEdit=(id)=>{
               Product variant details
             </p>
           </div>
+          <div class="flex gap-3">
+       <button
+       @click="openAddProductVaraints"
+          class="flex items-center gap-2 rounded-lg bg-foreground px-3.5 py-1.5 text-xs text-background hover:opacity-90"
+        >
+          <Plus class="h-3.5 w-3.5" />
+          Add product variants
+        </button>
           <button @click="closeVariants">
             <X class="h-4 w-4 text-muted-foreground" />
           </button>
+        </div>
         </div>
 
         <!-- Content -->
@@ -289,13 +438,20 @@ const handleProductEdit=(id)=>{
                 <td class="py-2 text-right text-sm">
                   {{ variant.stock }}
                 </td>
+
+ 
+
                               <td class="px-5 py-4 text-right">
                 <div class="flex justify-end gap-2">
                   <Pencil
                   @click="openEditProductVariants(variant)"
                   class="h-4 w-4 text-muted-foreground" />
                   <Trash2 
-                   
+ @click="openDeleteConfirmationModel({
+    label: 'Product Variant',
+    itemToDelete: variant,
+    type: 'variant'
+  })"
                   class="h-4 w-4 text-destructive" />
                 </div>
               </td>
@@ -314,83 +470,37 @@ const handleProductEdit=(id)=>{
       </div>
     </div>
 
-    <!-- Edit Product Popup -->
-  
-    <div
-      v-if="showEditProductVariant"
-      @click.self="closeEditProductVariants"
- class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-    >
-      <div class="w-full max-w-md rounded-xl bg-card shadow-xl border border-border/40 p-6">
-        <div class="flex justify-between mb-4">
-          <h3 class="text-sm font-medium">Edit Product</h3>
-          <button @click="closeEditProductVariants">
-            <X class="h-4 w-4 text-muted-foreground" />
-          </button>
-        </div>
 
-        <div class="space-y-4">
+   <ProductVariantForm
+   label="Edit"
+   :productVar="editingProduct"
+   :openForm="showEditProductVariant"
+   :sizes="sizes"
+   :selectedSizes="selectedSizes"
+   @selectItem="selectSizes"
+   @closeForm="closeEditProductVariants"
+   @handleSubmit="updateProductVaraints"
+   />
 
-        <DropdownField
-          label="Sizes"
-          :items="sizes"
-          :defaultValue="editingProduct.size"
-          :isOpen="isSizesDropDownOpen"
-          :selectedItem="selectedSizes"
-         @toggleBrandDropdown="isSizesDropDownOpen=!isSizesDropDownOpen" 
-         @selectItem="selectSizes"
-          />
+   <ProductVariantForm
+   label="Add"
+   :productVar="addProductVaraintsForm"
+   :openForm="showAddProductVariant"
+   :sizes="sizes"
+   :selectedSizes="selectedSizes"
+   @selectItem="selectSizes"
+   @closeForm="closeAddProductVaraints"
+   @handleSubmit="addProductVaraints"
+   />
 
-        <label class="block text-xs font-medium text-muted-foreground mb-1" for="category">
-          Selling Price
-        </label>
-        <input
+   <DeleteConfirmationModal
+   :showDeleteModal="deleteModel.showDeleteModal"
+   :label="deleteModel.label"
+   :itemToDelete="deleteModel.itemToDelete"
+@handleDelete="handleDelete"
+@cancelModal="closeDeleteConfirmationModel"
+   />
 
-          type="number"
-          v-model="editingProduct.sellingPrice"
-          class="w-full rounded-lg border border-border/50 bg-background py-2 px-4 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-foreground/10 focus:border-foreground/20 mb-2"
-        />
-                   <label class="block text-xs font-medium text-muted-foreground mb-1" for="category">
-          Cost Price
-        </label>
-        <input
-
-          type="number"
-          v-model="editingProduct.costPrice"
-          class="w-full rounded-lg border border-border/50 bg-background py-2 px-4 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-foreground/10 focus:border-foreground/20 mb-2"
-        />
-           <label class="block text-xs font-medium text-muted-foreground mb-1" for="category">
-         Stock
-        </label>
-        <input
-
-          type="number"
-          v-model="editingProduct.stock"
-          class="w-full rounded-lg border border-border/50 bg-background py-2 px-4 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-foreground/10 focus:border-foreground/20 mb-2"
-        />
-
-
-
-
-        <div class="flex justify-end gap-2 mt-4">
-          <button
-            @click="showEditProductVariant=!showEditProductVariant"
-            class="px-3 py-1.5 text-xs rounded-lg bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            @click="updateProductVaraints"
-            class="flex items-center gap-2 px-3.5 py-1.5 text-xs rounded-lg bg-foreground text-background transition-opacity hover:opacity-90"
-          >
-            <Plus class="h-3.5 w-3.5" stroke-width="1.5" />
-            Save
-          </button>
-        </div>
-
-        </div>
-      </div>
-    </div>
 
 
   </div>

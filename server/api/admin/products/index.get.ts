@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, ilike, or } from "drizzle-orm";
 import { ca } from "zod/v4/locales";
 import { db } from "~~/server/db/client";
 import { brand } from "~~/server/db/schema/brand";
@@ -23,6 +23,36 @@ export default defineEventHandler(async (event)=>{
 //       statusMessage: err.message,
 //     })  
 // }
+const {search} = getQuery(event);
+
+if(search){
+    const res = await db
+      .select({
+        id: products.id,
+        title: products.title,
+        description:products.description,
+        thumbnail:products.thumbnail,
+        images:products.images,
+        category: category.title,
+        brand:brand.title,
+        
+      })
+      .from(products)
+      .leftJoin(
+        category,
+        eq(products.categoryId, category.id)
+      ).leftJoin(
+        brand,
+        eq(products.brandId, brand.id)
+      ).where(
+      or(
+ilike(products.title,`%${search}%`),
+ilike(category.title,`%${search}%`)
+      )     
+    ) 
+    return res;
+}
+
   const res = await db
       .select({
         id: products.id,

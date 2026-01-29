@@ -5,9 +5,10 @@ definePageMeta({
   layout: 'admin',
 })
 
-toast.success("helllloooooooooooooo")
+
 </script>
 
 <template>
+
   <NuxtPage />
 </template>
