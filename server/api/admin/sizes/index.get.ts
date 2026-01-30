@@ -8,8 +8,12 @@ import { category } from "~~/server/db/schema/category"
 import { brand } from "~~/server/db/schema/brand"
 import { sizes } from "~~/server/db/schema/sizes"
 import { eq, ilike, or } from "drizzle-orm"
+import { requireAuth } from "~~/server/lib/auth"
+import { requireAdmin } from "~~/server/lib/admin"
 
 export default defineEventHandler(async (event) => {
+requireAuth(event)
+
 
 
 const {search} = getQuery(event);

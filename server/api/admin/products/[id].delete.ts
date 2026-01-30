@@ -1,8 +1,10 @@
 import { eq } from "drizzle-orm"
 import { db } from "~~/server/db/client"
 import { products } from "~~/server/db/schema"
+import { hasEditAccess } from "~~/server/lib/hasEditAccess"
 
 export default defineEventHandler(async(event)=>{
+    hasEditAccess(event)
  const id = event.context.params?.id
 
     if(!id) throw createError({ message: "No id is provided" })

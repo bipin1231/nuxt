@@ -27,7 +27,10 @@ export default defineEventHandler(async(event)=>{
     
 
     const singingObj={
-        userId:user.id,
+        id:user.id,
+        name:user.name,
+        avatar:user.avatar,
+
         role:user.role
     }
     const token=jwt.sign(singingObj,JWT_SECRET, { expiresIn: '24h' })
@@ -36,7 +39,7 @@ export default defineEventHandler(async(event)=>{
 
     setCookie(event,'token',token,{
     httpOnly: true,
-    maxAge: 60 * 60*48, 
+    maxAge: 60 * 60*72, 
     path: '/',
     sameSite: 'lax',
     })

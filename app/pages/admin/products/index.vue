@@ -6,7 +6,11 @@ import { Plus, Pencil, Trash2, Search, X } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import ProductVariantForm from '~/components/admin/ProductVariantForm.vue'
 
-definePageMeta({ layout: 'admin' })
+definePageMeta({ 
+  layout: 'admin',
+   middleware: ['admin']
+
+ })
 type ProductVariantForm={
   sizeId:number,
   sellingPrice:number,

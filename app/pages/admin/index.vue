@@ -3,6 +3,7 @@ import { toast } from 'vue-sonner';
 
 definePageMeta({
   layout: 'admin',
+    middleware: ['admin']
 })
 
 

@@ -8,6 +8,7 @@ import { category } from "~~/server/db/schema/category"
 import { brand } from "~~/server/db/schema/brand"
 import { eq } from "drizzle-orm"
 import { sizes } from "~~/server/db/schema/sizes"
+import { hasEditAccess } from "~~/server/lib/hasEditAccess"
 
 // const categorySchema = z.object({
 //     title: z.string().min(3),
@@ -15,6 +16,7 @@ import { sizes } from "~~/server/db/schema/sizes"
 
 
 export default defineEventHandler(async (event) => {
+     hasEditAccess(event)
     const body = await readBody(event)
     if (!body) throw createError({ statusCode: 400 })
    

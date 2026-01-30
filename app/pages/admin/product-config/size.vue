@@ -6,6 +6,7 @@ import PopupFormModel from './PopupFormModel.vue';
 import { log } from 'node:console';
 import { category } from '~~/server/db/schema/category';
 import DeleteConfirmationModal from '~/components/DeleteConfirmationModal.vue';
+import { toast } from 'vue-sonner';
 definePageMeta({
   layout: 'admin',
 })
@@ -79,6 +80,7 @@ const handleSubmit = async() => {
           title:editingSizeName.value
         }
       });
+      toast.success("updated successfully");
     }else{
     const response = await $fetch('/api/admin/sizes', {
       method: 'POST',
@@ -87,19 +89,18 @@ const handleSubmit = async() => {
         title: editingSizeName.value,
       },
     });
-    console.log("added successfully");
+     toast.success("added successfully");
   }
     showModal.value=false;
     editingSizeName.value='';
     editingSizeId.value=null;
     refresh();
   } catch (error) {
-    console.error("Error submitting form:", error);
+    toast.error( error?.statusMessage);
   }
   
   
-  console.log("form is here");
-  
+
 }
 // Open delete modal
 const handleItemDelete = (item: any) => {
@@ -118,9 +119,10 @@ const confirmDeleteItem = async () => {
 
     showDeleteModal.value = false
     itemToDelete.value = null
+    toast.success("Item deleted successfully")
     refresh()
   } catch (error) {
-    console.error(error)
+    toast.error(error?.statusMessage)
   }
 }
 </script>

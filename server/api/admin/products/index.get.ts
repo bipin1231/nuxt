@@ -6,12 +6,12 @@ import { category } from "~~/server/db/schema/category";
 import { products } from "~~/server/db/schema/products";
 import { productVariants } from "~~/server/db/schema/productVariants";
 import { sizes } from "~~/server/db/schema/sizes";
-import { requireAdmin } from "~~/server/lib/middleware/admin";
-import { requireAuth } from "~~/server/lib/middleware/auth";
+import { requireAdmin } from "~~/server/lib/admin";
+import { requireAuth } from "~~/server/lib/auth";
 
 export default defineEventHandler(async (event)=>{
-//  requireAuth(event)
-// requireAdmin(event)
+ requireAuth(event)
+requireAdmin(event)
 
 // try{
 //     const productsRes = db.select().from(products)

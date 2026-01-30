@@ -2,11 +2,16 @@
 import { ref } from 'vue'
 import { Search, Bell, User, LogOut } from 'lucide-vue-next'
 
+
+
 interface AdminHeaderProps {
   title: string
   description?: string
   actions?: any
 }
+const {user,logout}=useAuth();
+
+console.log("admin pannel user",user.value);
 
 const props = defineProps<AdminHeaderProps>()
 
@@ -16,8 +21,9 @@ const toggleMenu = () => {
   showMenu.value = !showMenu.value
 }
 
-const logout = () => {
-  console.log('logout')
+const handleLogout = async() => {
+  
+ await logout()
 }
 </script>
 
@@ -54,12 +60,20 @@ const logout = () => {
        
         <div class="relative">
           <button
-            @click="toggleMenu"
-            class="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-xs font-medium text-foreground transition hover:ring-2 hover:ring-border"
-          >
-            BA
-          </button>
+  @click="toggleMenu"
+  class="flex h-8 w-8 items-center justify-center rounded-full overflow-hidden bg-secondary text-xs font-medium text-foreground transition hover:ring-2 hover:ring-border"
+>
+  <img
+    v-if="user?.avatar"
+    :src="user.avatar"
+    alt="Avatar"
+    class="h-full w-full object-cover"
+  />
 
+  <span v-else>
+    {{ user?.name?.charAt(0) }}
+  </span>
+</button>
           <div
             v-if="showMenu"
             class="absolute right-0 top-10 z-50 w-40 rounded-lg border border-border bg-white shadow-md"
@@ -72,7 +86,7 @@ const logout = () => {
             </button>
 
             <button
-              @click="logout"
+              @click="handleLogout"
               class="flex w-full items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
             >
               <LogOut class="h-4 w-4" />

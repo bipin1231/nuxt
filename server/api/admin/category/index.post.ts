@@ -5,6 +5,7 @@ import { products } from "~~/server/db/schema/products"
 import fs from 'fs'
 import path from 'path'
 import { category } from "~~/server/db/schema/category"
+import { hasEditAccess } from "~~/server/lib/hasEditAccess"
 
 const categorySchema = z.object({
     title: z.string().min(3),
@@ -12,6 +13,7 @@ const categorySchema = z.object({
 
 
 export default defineEventHandler(async (event) => {
+     hasEditAccess(event)
     const body = await readBody(event)
     if (!body) throw createError({ statusCode: 400 })
    

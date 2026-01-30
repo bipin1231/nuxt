@@ -1,5 +1,5 @@
 export default defineEventHandler((event) => {
-  //    if (!event.path.startsWith('/admin')) {
+  //    if (!event.path.startsWith('api/admin')) {
   //   return
   // }
   // const token = getCookie(event, 'user')

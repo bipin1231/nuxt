@@ -7,6 +7,7 @@ import path from 'path'
 import { imageService } from "~~/server/service/imageService"
 import { productVariants } from "~~/server/db/schema/productVariants"
 import { and, eq, ne } from "drizzle-orm"
+import { hasEditAccess } from "~~/server/lib/hasEditAccess"
 
 const productSchema = z.object({
     name: z.string().min(3),
@@ -19,6 +20,7 @@ const productSchema = z.object({
 
 
 export default defineEventHandler(async (event) => {
+  hasEditAccess(event)
     const body = await readBody(event)
   
     

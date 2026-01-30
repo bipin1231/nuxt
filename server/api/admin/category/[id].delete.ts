@@ -3,8 +3,10 @@ import { th } from "zod/v4/locales"
 import { db } from "~~/server/db/client"
 import { category } from "~~/server/db/schema/category"
 import { users } from "~~/server/db/schema/user"
+import { hasEditAccess } from "~~/server/lib/hasEditAccess"
 
 export default defineEventHandler(async (event)=>{
+     hasEditAccess(event)
     const id = event.context.params?.id
     if(!id) throw createError({ message: "No id is provided" })
             

@@ -19,6 +19,8 @@ const selectedBrand = ref<any>(null)
 const { data: categories } = await useFetch('/api/admin/category')
 const { data: brands = [] } = await useFetch('/api/admin/brand')
 const { data: product } = await useFetch(`/api/admin/products/${id}`)
+console.log("product",product);
+
 const selectCategory = (cat: any) => {
   selectedCategory.value = cat
   isCategoryDropDownOpen.value = false
@@ -152,10 +154,19 @@ const goBack = () => router.push('/admin/products')
             <input type="text" v-model="product.title"
               class="w-full rounded-lg border border-border/50 bg-background py-2 px-4 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-foreground/10 focus:border-foreground/20 mb-2" />
 
-            <DropdownField label="Category" :items="categories" :isOpen="isCategoryDropDownOpen"
-              :selectedItem="selectedCategory" @toggleBrandDropdown="isCategoryDropDownOpen = !isCategoryDropDownOpen"
-              @selectItem="selectCategory" />
-            <DropdownField label="Brand" :items="brands" :isOpen="isBrandDropDownOpen" :selectedItem="selectedBrand"
+            <DropdownField label="Category" 
+            :defaultValue="product?.category"
+            :items="categories" 
+            :isOpen="isCategoryDropDownOpen"
+              :selectedItem="selectedCategory" 
+              @toggleBrandDropdown="isCategoryDropDownOpen = !isCategoryDropDownOpen"
+              @selectItem="selectCategory" 
+              />
+            <DropdownField 
+             :defaultValue="product?.brand"
+            label="Brand" 
+            :items="brands" 
+            :isOpen="isBrandDropDownOpen" :selectedItem="selectedBrand"
               @toggleBrandDropdown="isBrandDropDownOpen = !isBrandDropDownOpen" @selectItem="selectBrand" />
             <label class="block text-xs font-medium text-muted-foreground mb-1" for="category">
               Description

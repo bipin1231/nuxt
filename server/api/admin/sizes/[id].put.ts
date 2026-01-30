@@ -4,8 +4,12 @@ import { brand } from "~~/server/db/schema/brand"
 import { category } from "~~/server/db/schema/category"
 import { sizes } from "~~/server/db/schema/sizes"
 import { users } from "~~/server/db/schema/user"
+import { hasEditAccess } from "~~/server/lib/hasEditAccess"
 
 export default defineEventHandler(async(event)=>{
+    
+    hasEditAccess(event)
+
     const id=event.context.params?.id
     if(!id){
         throw createError({

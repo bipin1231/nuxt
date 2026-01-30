@@ -8,7 +8,7 @@ export const useAuth = () => {
   // get user info from server
   const fetchUser = async () => {
     try {
-      const res = await $fetch<{ user: User }>('/api/user/me') 
+      const res = await $fetch<{ user: User }>('/api/auth/me') 
       console.log(res);
       
       user.value = res.user
@@ -22,10 +22,11 @@ export const useAuth = () => {
   }
   const logout=async()=>{
     try{
-        await $fetch('/api/logout',{
+        await $fetch('/api/auth/logout',{
             method:'POST'
         })
         user.value=null;
+        navigateTo('/login')
     }catch(error){
         console.log(error);
         

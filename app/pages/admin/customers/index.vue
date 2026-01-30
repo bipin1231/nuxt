@@ -87,7 +87,7 @@ watch(searchQuery, (value) => {
           <thead>
             <tr class="border-b border-border/30">
               <th class="px-5 py-3 text-left text-xs font-normal text-muted-foreground">
-                User
+                Customers
               </th>
               <th class="hidden px-5 py-3 text-left text-xs font-normal text-muted-foreground md:table-cell">
                 Email
@@ -128,7 +128,7 @@ watch(searchQuery, (value) => {
         </table>
 
         <div v-if="users?.length === 0" class="py-12 text-center">
-          <p class="text-sm text-muted-foreground">No users found.</p>
+          <p class="text-sm text-muted-foreground">No Customers found.</p>
         </div>
       </div>
     </div>

@@ -65,7 +65,7 @@ const isActive = (href: string) => {
           to="/admin"
           class="font-serif text-lg tracking-wide text-foreground"
         >
-          Atelier
+          Store
         </NuxtLink>
       </transition>
 

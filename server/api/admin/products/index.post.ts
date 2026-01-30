@@ -6,6 +6,7 @@ import fs from 'fs'
 import path from 'path'
 import { imageService } from "~~/server/service/imageService"
 import { productVariants } from "~~/server/db/schema/productVariants"
+import { hasEditAccess } from "~~/server/lib/hasEditAccess"
 
 const productSchema = z.object({
     name: z.string().min(3),
@@ -32,6 +33,7 @@ const separateFormData = (data: MultiPartData[]) => {
 }
 
 export default defineEventHandler(async (event) => {
+    hasEditAccess(event)
     const body = await readMultipartFormData(event)
     if (!body) throw createError({ statusCode: 400 })
     // console.log(body);

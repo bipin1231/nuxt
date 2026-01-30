@@ -1,14 +1,18 @@
-export default defineNuxtRouteMiddleware(async () => {
+export default defineNuxtRouteMiddleware(async (to) => {
 //   const user = useState<any>('user')
   const { user,fetchUser } = useAuth()
 
-  // if (!user.value) {
-  //   await fetchUser()
-  // }
-  // console.log("middleware user",user);
-  
+  if (!user.value) {
+    await fetchUser()
+  }
+   if (!user.value) return
 
-  // if (user.value?.role === 'admin') {
-  //   return navigateTo('/admin')
-  // }
+  if (to.path.startsWith('/admin')) return
+  
+   const role = user.value?.role 
+  const allowedRoles = ['admin', 'editor','viewer']
+
+   if (allowedRoles.includes(role)) {
+    return navigateTo('/admin')
+  }
 })

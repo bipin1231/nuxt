@@ -4,6 +4,7 @@ import { ref, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import PasswordField from '~/components/PasswordField.vue'
 import SubmitButton from '~/components/SubmitButton.vue'
+import { toast } from 'vue-sonner'
 
 definePageMeta({
   layout: 'auth'
@@ -82,11 +83,11 @@ const handleSubmit = async() => {
       method:'POST',
       body:userFormData
     })
-     alert('Signup success!')
+     toast.success('Signup success!')
      router.push('/login')
     
   } catch (err: any) {
-    alert(err?.data?.message || 'Error')
+    toast.error(err?.statusMessage || 'Error')
   }
 }
 </script>
