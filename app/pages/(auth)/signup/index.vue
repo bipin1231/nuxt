@@ -10,7 +10,7 @@ definePageMeta({
   layout: 'auth'
 })
 
-
+const {fetchUser}=useAuth()
 
 const router=useRouter()
 
@@ -83,8 +83,10 @@ const handleSubmit = async() => {
       method:'POST',
       body:userFormData
     })
+    
      toast.success('Signup success!')
-     router.push('/login')
+     fetchUser()
+     router.push('/')
     
   } catch (err: any) {
     toast.error(err?.statusMessage || 'Error')

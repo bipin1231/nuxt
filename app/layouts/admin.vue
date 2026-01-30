@@ -13,10 +13,10 @@ watch(sidebarCollapsed, (val) => {
 
 <template>
   <div class="flex min-h-screen bg-background">
-    <!-- Sidebar -->
+
     <AdminSidebar v-model="sidebarCollapsed" />
 
-    <!-- Main content -->
+ 
     <main
       :class="[
         'flex-1 transition-all duration-300 ease-in-out',

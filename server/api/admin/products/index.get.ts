@@ -13,16 +13,7 @@ export default defineEventHandler(async (event)=>{
  requireAuth(event)
 requireAdmin(event)
 
-// try{
-//     const productsRes = db.select().from(products)
-//     return productsRes
-// }catch(err:any){
-//     console.error(" DB ERROR:", err) 
-//     throw createError({
-//       statusCode: 500,
-//       statusMessage: err.message,
-//     })  
-// }
+
 const {search} = getQuery(event);
 
 if(search){

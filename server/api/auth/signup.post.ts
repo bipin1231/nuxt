@@ -5,6 +5,8 @@ import bcrypt from 'bcrypt'
 import {z} from 'zod'
 import { eq } from "drizzle-orm";
 
+import jwt from 'jsonwebtoken'
+const JWT_SECRET = process.env.JWT_SECRET || ""
 export const createUserSchema=z.object({
     name:z.string().min(2).max(100),
     email:z.string(),
@@ -37,13 +39,26 @@ export default defineEventHandler(async (event)=>{
     password:hashedPassword,
     role:'user'
    });
+
+       const singingObj={
+          
+           name:name,
+           avatar:"",
+   
+           role:'user'
+       }
+       const token=jwt.sign(singingObj,JWT_SECRET, { expiresIn: '24h' })
+       console.log("jwt token",token);
+       
+   
+       setCookie(event,'token',token,{
+       httpOnly: true,
+       maxAge: 60 * 60*72, 
+       path: '/',
+       sameSite: 'lax',
+       })
         
    }catch(err){
 throw err
    }
-
-   
-
-
-
 })
